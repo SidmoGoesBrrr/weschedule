@@ -7,7 +7,7 @@ WeSchedule is a modern **When2Meet clone** with calendar integrations, a sleek U
 - **Calendar Sync** – Connect Google, Outlook, or iCal to auto-import your availability.  
 - **Better Availability Input** – Drag-and-drop slots, mark times as ✅ Preferred, ⚪ Okay, ❌ Not Possible.  
 - **Smart Suggestions** – WeSchedule recommends the best meeting times based on group overlap.  
-- **Corq Integration** – Pull in your existing groups or communities to schedule instantly.  
+- **Corq Integration** – Show events/things to do on SBU campus if looking for an activity
 - **Messaging** – Built-in chat/comments for each scheduling event.  
 - **Beautiful UI** – Clean, responsive design inspired by [Neobrutalism UI](https://www.neobrutalism.dev/docs/installation).  
 - **Easy Invites** – Share via link, Corq group, or email with polished invite pages.  
