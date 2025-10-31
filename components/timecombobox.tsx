@@ -53,7 +53,7 @@ times = times.flatMap((time) => {
 
 export function TimeComboBox(props) {
     const [open, setOpen] = useState(false)
-    const [value, setValue] = useState('00:00');
+    const [value, setValue] = useState('');
     let update = (newValue) => {
         props.updateFormCallback(newValue);
         setValue(newValue);

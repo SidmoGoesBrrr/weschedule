@@ -1,3 +1,5 @@
+'use client'
+
 import { EventCreatorForm } from '@/components/eventcreatorform'
 
 export default function EventCreator() {

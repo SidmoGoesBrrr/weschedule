@@ -30,22 +30,27 @@ const formSchema = z.object({
 });
 
 export function EventCreatorForm() {
-
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             title: "Untitled",
             // description: "",
-            dates: [new Date().toISOString().slice(0, 10)],
-            timestart: "00:00",
-            timeend: "00:00"
+            dates: [],
+            timestart: "",
+            timeend: ""
         },
     });
 
-    const { setValue } = form;
+    const { setValue, getValues } = form;
     const updateTimestart = (newTime) => setValue("timestart", newTime);
     const updateTimeend = (newTime) => setValue("timeend", newTime);
-    const updateDates = (newDates) => setValue("dates", newDates);
+    let dates = [];
+    const updateDates = (newDates) => {
+        dates = newDates;
+        newDates = newDates.map(date => date.toISOString().slice(0, 10));
+        setValue("dates", newDates, { shouldValidate: true });
+        console.log("form's dates", getValues("dates"));
+    };
 
     function onSubmit(values: z.infer<typeof formSchema>) {
         // only called when schema matches
@@ -74,7 +79,7 @@ export function EventCreatorForm() {
                         <FormItem>
                             <FormLabel>Choose Available Dates</FormLabel>
                             <FormControl>
-                                <DateSelector updateFormCallback={updateDates}/>
+                                <DateSelector dates={dates} updateFormCallback={updateDates}/>
                             </FormControl>
                         </FormItem>
                     )}
@@ -103,7 +108,6 @@ export function EventCreatorForm() {
                         </FormItem>
                     )}
                 />
-                {/* <Input type="hidden" name="timestart" value={values.timestart}/> */}
                 <Button type="submit">Submit</Button>
             </form>
         </Form>
