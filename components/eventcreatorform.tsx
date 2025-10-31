@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 
 import { TimeComboBox } from "@/components/timecombobox";
+import { DateSelector } from "@/components/dateselector";
 
 const formSchema = z.object({
     title: z.string().min(1).max(50),
@@ -35,7 +36,7 @@ export function EventCreatorForm() {
         defaultValues: {
             title: "Untitled",
             // description: "",
-            dates: [new Date().toISOString().splice(0, 10)],
+            dates: [new Date().toISOString().slice(0, 10)],
             timestart: "00:00",
             timeend: "00:00"
         },
@@ -73,7 +74,7 @@ export function EventCreatorForm() {
                         <FormItem>
                             <FormLabel>Choose Available Dates</FormLabel>
                             <FormControl>
-                                <TimeComboBox updateFormCallback={updateDates}/>
+                                <DateSelector updateFormCallback={updateDates}/>
                             </FormControl>
                         </FormItem>
                     )}
