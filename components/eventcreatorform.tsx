@@ -17,13 +17,14 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 import { TimeComboBox } from "@/components/timecombobox";
 import { DateSelector } from "@/components/dateselector";
 
 const formSchema = z.object({
     title: z.string().min(1).max(50),
-    // description: z.string().min(0).max(1000),
+    description: z.string().min(0).max(1000),
     dates: z.array(z.iso.date()),
     timestart: z.iso.time(),
     timeend: z.iso.time()
@@ -34,7 +35,7 @@ export function EventCreatorForm() {
         resolver: zodResolver(formSchema),
         defaultValues: {
             title: "Untitled",
-            // description: "",
+            description: "",
             dates: [],
             timestart: "",
             timeend: ""
@@ -42,9 +43,23 @@ export function EventCreatorForm() {
     });
 
     const { setValue, getValues } = form;
-    const updateTimestart = (newTime) => setValue("timestart", newTime);
-    const updateTimeend = (newTime) => setValue("timeend", newTime);
-    let dates = [];
+    const [ earliestTime, setEarliestTime ] = useState('');
+    const [ latestTime, setLatestTime ] = useState('');
+    const updateTimestart = (newTime) => {
+        setValue("timestart", newTime);
+        setEarliestTime(newTime);
+    };
+    const updateTimeend = (newTime) => { 
+        setValue("timeend", newTime);
+        setLatestTime(newTime);
+    }
+    let dates = getValues("dates")
+    if (dates) {
+        dates = dates.map(date => new Date(date));
+    }
+    else {
+        dates = [];
+    }
     const updateDates = (newDates) => {
         dates = newDates;
         newDates = newDates.map(date => date.toISOString().slice(0, 10));
@@ -74,6 +89,18 @@ export function EventCreatorForm() {
                 />
                 <FormField
                     control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Event Title</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="A cool event!" {...field} />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
                     name="dates"
                     render={() => (
                         <FormItem>
@@ -91,7 +118,7 @@ export function EventCreatorForm() {
                         <FormItem>
                             <FormLabel>Start Time</FormLabel>
                             <FormControl>
-                                <TimeComboBox updateFormCallback={updateTimestart}/>
+                                <TimeComboBox latest={latestTime} updateFormCallback={updateTimestart}/>
                             </FormControl>
                         </FormItem>
                     )}
@@ -103,7 +130,7 @@ export function EventCreatorForm() {
                         <FormItem>
                             <FormLabel>End Time</FormLabel>
                             <FormControl>
-                                <TimeComboBox updateFormCallback={updateTimeend}/>
+                                <TimeComboBox earliest={earliestTime} updateFormCallback={updateTimeend}/>
                             </FormControl>
                         </FormItem>
                     )}

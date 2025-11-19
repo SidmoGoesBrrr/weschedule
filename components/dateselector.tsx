@@ -13,7 +13,7 @@ export function DateSelector(props) {
         // console.log("upd", dates);
     }
 
-    useEffect(() => console.log("calendar's dates", props.dates));
+    // useEffect(() => console.log("calendar's dates", props.dates));
     
     return (
         <Calendar

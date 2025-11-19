@@ -21,12 +21,12 @@ import {
 
 import { cn } from "@/lib/utils"
 
-let times = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
-times = times.flatMap((time) => {
+let allTimes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
+allTimes = allTimes.flatMap((time) => {
     let modTime = time % 12;
     let hourValue = time < 10 ? `0${time}` : `${time}`;
     let hourLabel = modTime < 10 ? `0${modTime}` : `${modTime}`;
-    if (time == 0) {
+    if (modTime == 0) {
         hourLabel = "12";
     }
     let suffix = time < 12 ? "AM" : "PM";
@@ -52,12 +52,29 @@ times = times.flatMap((time) => {
 // console.log(times);
 
 export function TimeComboBox(props) {
+    const {
+        earliest,
+        latest,
+        updateFormCallback
+    } = props;
     const [open, setOpen] = useState(false)
     const [value, setValue] = useState('');
     let update = (newValue) => {
-        props.updateFormCallback(newValue);
+        updateFormCallback(newValue);
         setValue(newValue);
     };
+    let earliestIndex = -1;
+    let latestIndex = allTimes.length;
+    for (let index = 0; index < allTimes.length; index += 1) {
+        if (allTimes[index].value == earliest) {
+            earliestIndex = index;
+        }
+        if (allTimes[index].value == latest) {
+            latestIndex = index;
+        }
+    }
+    
+    const times = allTimes.slice(earliestIndex + 1, latestIndex);
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
