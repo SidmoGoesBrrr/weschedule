@@ -92,7 +92,7 @@ export function EventCreatorForm() {
                     name="description"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Event Title</FormLabel>
+                            <FormLabel>Event Description</FormLabel>
                             <FormControl>
                                 <Textarea placeholder="A cool event!" {...field} />
                             </FormControl>
