@@ -22,6 +22,14 @@ const formSchema = z.object({
   }),
 })
 
+/**
+ * Renders a username form with Zod-backed validation and submission handling.
+ *
+ * The form includes a single "username" field with a minimum length validation, displays field-level
+ * descriptions and validation messages, and logs submitted values to the console.
+ *
+ * @returns A JSX element containing the validated username form and submit button
+ */
 export default function FormDemo() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

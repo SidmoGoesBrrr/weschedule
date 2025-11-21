@@ -4,6 +4,11 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Play } from "lucide-react"
 
+/**
+ * Renders the site hero/home page layout with header, main hero content, video placeholder, and "How It Works" section.
+ *
+ * @returns A React element that displays a sticky header, a centered hero section with CTA and video demo placeholder, and a three-card "How It Works" grid.
+ */
 export default function HeroPage() {
   return (
     <div className="w-full">
@@ -108,4 +113,3 @@ export default function HeroPage() {
     </div>
   )
 }
-
