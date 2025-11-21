@@ -3,6 +3,11 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 
+// Generic Button component
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  children: React.ReactNode;
+}
+
 const Button = ({ children, ...props }: any) => (
   <button
     {...props}
@@ -12,25 +17,33 @@ const Button = ({ children, ...props }: any) => (
   </button>
 );
 
-const Card = ({ children, className = "" }: any) => (
+// Card components
+const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = "" }) => (
   <div className={`bg-white shadow-md rounded-2xl ${className}`}>{children}</div>
 );
 
-const CardContent = ({ children, className = "" }: any) => (
+const CardContent: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = "" }) => (
   <div className={`p-4 ${className}`}>{children}</div>
 );
+
+// Availability types
+interface DayAvailability {
+  start: string;
+  end: string;
+  available: boolean;
+}
 
 export default function AvailabilityPage() {
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
-  const [availability, setAvailability] = useState(
+  const [availability, setAvailability] = useState<Record<string, DayAvailability>>(
     days.reduce((acc, day) => {
       acc[day] = { start: "09:00", end: "17:00", available: true };
       return acc;
-    }, {} as Record<string, { start: string; end: string; available: boolean }>)
+    }, {} as Record<string, DayAvailability>)
   );
 
-  const [groupAvailability] = useState({
+  const [groupAvailability] = useState<Record<string, number>>({
     Monday: 4,
     Tuesday: 6,
     Wednesday: 5,
@@ -40,7 +53,7 @@ export default function AvailabilityPage() {
     Sunday: 1,
   });
 
-  const handleChange = (day: string, field: string, value: any) => {
+  const handleChange = (day: string, field: keyof DayAvailability, value: any) => {
     setAvailability((prev) => ({
       ...prev,
       [day]: { ...prev[day], [field]: value },
