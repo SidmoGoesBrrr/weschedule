@@ -45,24 +45,24 @@ export function EventCreatorForm() {
     const { setValue, getValues } = form;
     const [ earliestTime, setEarliestTime ] = useState('');
     const [ latestTime, setLatestTime ] = useState('');
-    const updateTimestart = (newTime) => {
+    const updateTimestart = (newTime: any) => {
         setValue("timestart", newTime);
         setEarliestTime(newTime);
     };
-    const updateTimeend = (newTime) => { 
+    const updateTimeend = (newTime: any) => { 
         setValue("timeend", newTime);
         setLatestTime(newTime);
     }
-    let dates = getValues("dates")
+    let dates: any = getValues("dates")
     if (dates) {
-        dates = dates.map(date => new Date(date));
+        dates = dates.map((date: any) => new Date(date));
     }
     else {
         dates = [];
     }
-    const updateDates = (newDates) => {
+    const updateDates = (newDates: any) => {
         dates = newDates;
-        newDates = newDates.map(date => date.toISOString().slice(0, 10));
+        newDates = newDates.map((date: any) => date.toISOString().slice(0, 10));
         setValue("dates", newDates, { shouldValidate: true });
         console.log("form's dates", getValues("dates"));
     };

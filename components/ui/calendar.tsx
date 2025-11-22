@@ -1,7 +1,7 @@
 "use client"
 
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker } from "react-day-picker"
+import { DayPicker, DayPickerProps } from "react-day-picker"
 
 import * as React from "react"
 
@@ -17,6 +17,7 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  console.log("MODE", props.mode)
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -65,14 +66,25 @@ function Calendar({
         day_hidden: "invisible",
         ...classNames,
       }}
-      components={{
-        IconLeft: ({ className, ...props }) => (
-          <ChevronLeft className={cn("size-4", className)} {...props} />
-        ),
-        IconRight: ({ className, ...props }) => (
-          <ChevronRight className={cn("size-4", className)} {...props} />
-        ),
-      }}
+      components={
+        {
+          IconLeft: ({
+            className,
+            ...props
+          }: {
+            className?: string
+            props?: any
+          }) => <ChevronLeft className={cn("size-4", className)} {...props} />,
+
+          IconRight: ({
+            className,
+            ...props
+          }: {
+            className?: string
+            props?: any
+          }) => <ChevronRight className={cn("size-4", className)} {...props} />,
+        } as unknown as Partial<DayPickerProps["components"]>
+      }
       {...props}
     />
   )

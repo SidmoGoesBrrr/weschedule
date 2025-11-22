@@ -3,7 +3,7 @@
 import { Calendar } from "@/components/ui/calendar";
 import { useState, useEffect } from 'react';
 
-export function DateSelector(props) {
+export function DateSelector(props: any) {
     
     return (
         <Calendar

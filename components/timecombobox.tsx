@@ -21,8 +21,8 @@ import {
 
 import { cn } from "@/lib/utils"
 
-let allTimes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
-allTimes = allTimes.flatMap((time) => {
+let allTimes: any = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
+allTimes = allTimes.flatMap((time: any) => {
     let modTime = time % 12;
     let hourValue = time < 10 ? `0${time}` : `${time}`;
     let hourLabel = modTime < 10 ? `0${modTime}` : `${modTime}`;
@@ -51,7 +51,7 @@ allTimes = allTimes.flatMap((time) => {
 });
 // console.log(times);
 
-export function TimeComboBox(props) {
+export function TimeComboBox(props: any) {
     const {
         earliest,
         latest,
@@ -59,7 +59,7 @@ export function TimeComboBox(props) {
     } = props;
     const [open, setOpen] = useState(false)
     const [value, setValue] = useState('');
-    let update = (newValue) => {
+    let update = (newValue: any) => {
         updateFormCallback(newValue);
         setValue(newValue);
     };
@@ -86,7 +86,7 @@ export function TimeComboBox(props) {
                     className="w-full justify-between md:max-w-[200px]"
                 >
                     {value
-                        ? times.find((time) => time.value === value)?.label
+                        ? times.find((time: any) => time.value === value)?.label
                         : "Select time..."}
                     <ChevronsUpDown />
                 </Button>
@@ -97,7 +97,7 @@ export function TimeComboBox(props) {
                     <CommandList className="p-1">
                         <CommandEmpty>No times found.</CommandEmpty>
                         <CommandGroup>
-                            {times.map((time) => (
+                            {times.map((time: any) => (
                                 <CommandItem
                                     key={time.value}
                                     value={time.label}
