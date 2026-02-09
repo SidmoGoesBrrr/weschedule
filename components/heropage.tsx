@@ -8,14 +8,14 @@ export default function HeroPage() {
   return (
     <div className="w-full">
       {/* Header */}
-      <header className="w-full border-b-2 border-border bg-background sticky top-0 z-50">
+      <header className="w-full border-b-2 border-border bg-white sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-heading text-foreground">
+          <Link href="/" className="text-2xl font-heading text-black" border-2 border-border>
             WeSchedule
           </Link>
           <nav className="flex items-center gap-4">
             <Link href="/create-event">
-              <Button variant="neutral" size="sm">
+              <Button variant="neutral" size="sm" className="bg-[#008AE5] text-black">
                 Create Event
               </Button>
             </Link>
