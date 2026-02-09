@@ -99,7 +99,7 @@ export function EventCreatorForm() {
                         </FormItem>
                     )}
                 />
-                <div class='flex flex-row m-8'>
+                <div className='flex flex-row m-8'>
                     <FormField
                         control={form.control}
                         name="dates"
@@ -112,7 +112,7 @@ export function EventCreatorForm() {
                             </FormItem>
                         )}
                     />
-                    <div class='m-8'>
+                    <div className='m-8'>
                         <FormField
                             control={form.control}
                             name="timestart"
