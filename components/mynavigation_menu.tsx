@@ -53,6 +53,13 @@ const components: { title: string; href: string; description: string }[] = [
   },
 ]
 
+/**
+ * Renders a multi-section navigation menu with "Getting started", "Components", and "Documentation" panels.
+ *
+ * The "Getting started" panel includes a featured card and quick links; the "Components" panel renders a list of component entries. Navigation items are built using the NavigationMenu primitives and the ListItem subcomponent.
+ *
+ * @returns A JSX element representing the navigation menu.
+ */
 export default function NavigationMenuDemo() {
   return (
     <NavigationMenu className="z-5 ">
@@ -124,6 +131,15 @@ export default function NavigationMenuDemo() {
   )
 }
 
+/**
+ * Renders a navigation list item with a linked title and description.
+ *
+ * @param className - Optional additional class names applied to the anchor element
+ * @param title - The title text displayed above the description
+ * @param children - The description content rendered below the title
+ * @param props - Additional props forwarded to the underlying anchor (`<a>`) element
+ * @returns The list item element (`<li>`) containing a navigation link with title and description
+ */
 function ListItem({
   className,
   title,

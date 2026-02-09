@@ -2,6 +2,14 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Render a styled native input element with configurable classes.
+ *
+ * @param className - Additional CSS classes appended to the component's default styling
+ * @param type - Value for the input's `type` attribute
+ * @param props - Other standard native input props forwarded to the element
+ * @returns A styled native HTML input element with `data-slot="input"`
+ */
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <input

@@ -14,6 +14,11 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar"
 
+/**
+ * Renders a demo menubar with File, Edit, View, and Profiles menus showcasing menu items, submenus, separators, keyboard shortcuts, checkbox items, and radio items.
+ *
+ * @returns The Menubar demo JSX element.
+ */
 export default function MenubarDemo() {
   return (
     <Menubar>
