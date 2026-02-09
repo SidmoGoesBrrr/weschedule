@@ -43,13 +43,13 @@ export function EventCreatorForm() {
     });
 
     const { setValue, getValues } = form;
-    const [ earliestTime, setEarliestTime ] = useState('');
-    const [ latestTime, setLatestTime ] = useState('');
+    const [earliestTime, setEarliestTime] = useState('');
+    const [latestTime, setLatestTime] = useState('');
     const updateTimestart = (newTime: any) => {
         setValue("timestart", newTime);
         setEarliestTime(newTime);
     };
-    const updateTimeend = (newTime: any) => { 
+    const updateTimeend = (newTime: any) => {
         setValue("timeend", newTime);
         setLatestTime(newTime);
     }
@@ -99,42 +99,46 @@ export function EventCreatorForm() {
                         </FormItem>
                     )}
                 />
-                <FormField
-                    control={form.control}
-                    name="dates"
-                    render={() => (
-                        <FormItem>
-                            <FormLabel>Choose Available Dates</FormLabel>
-                            <FormControl>
-                                <DateSelector dates={dates} updateFormCallback={updateDates}/>
-                            </FormControl>
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="timestart"
-                    render={() => (
-                        <FormItem>
-                            <FormLabel>Start Time</FormLabel>
-                            <FormControl>
-                                <TimeComboBox latest={latestTime} updateFormCallback={updateTimestart}/>
-                            </FormControl>
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="timeend"
-                    render={() => (
-                        <FormItem>
-                            <FormLabel>End Time</FormLabel>
-                            <FormControl>
-                                <TimeComboBox earliest={earliestTime} updateFormCallback={updateTimeend}/>
-                            </FormControl>
-                        </FormItem>
-                    )}
-                />
+                <div class='flex flex-row m-8'>
+                    <FormField
+                        control={form.control}
+                        name="dates"
+                        render={() => (
+                            <FormItem>
+                                <FormLabel>Choose Available Dates</FormLabel>
+                                <FormControl>
+                                    <DateSelector dates={dates} updateFormCallback={updateDates} />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                    <div class='m-8'>
+                        <FormField
+                            control={form.control}
+                            name="timestart"
+                            render={() => (
+                                <FormItem>
+                                    <FormLabel>Start Time</FormLabel>
+                                    <FormControl>
+                                        <TimeComboBox latest={latestTime} updateFormCallback={updateTimestart} />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="timeend"
+                            render={() => (
+                                <FormItem>
+                                    <FormLabel>End Time</FormLabel>
+                                    <FormControl>
+                                        <TimeComboBox earliest={earliestTime} updateFormCallback={updateTimeend} />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                </div>
                 <Button type="submit">Submit</Button>
             </form>
         </Form>
