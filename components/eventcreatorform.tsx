@@ -53,18 +53,17 @@ export function EventCreatorForm() {
         setValue("timeend", newTime);
         setLatestTime(newTime);
     }
-    let dates: any = getValues("dates")
-    if (dates) {
-        dates = dates.map((date: any) => new Date(date));
-    }
-    else {
-        dates = [];
-    }
-    const updateDates = (newDates: any) => {
-        dates = newDates;
-        newDates = newDates.map((date: any) => date.toISOString().slice(0, 10));
-        setValue("dates", newDates, { shouldValidate: true });
-        console.log("form's dates", getValues("dates"));
+    const watchedDates = form.watch("dates") ?? [];
+    const dates = watchedDates.map((d) => new Date(d + "T00:00:00")); // parse as local
+
+    const updateDates = (newDates: Date[]) => {
+        const isoStrings = newDates.map((d) => {
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, "0");
+            const dd = String(d.getDate()).padStart(2, "0");
+            return `${yyyy}-${mm}-${dd}`;
+        });
+        setValue("dates", isoStrings, { shouldValidate: true });
     };
 
     function onSubmit(values: z.infer<typeof formSchema>) {
