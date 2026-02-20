@@ -81,7 +81,7 @@ export function EventCreatorForm() {
                         <FormItem>
                             <FormLabel>Event Title</FormLabel>
                             <FormControl>
-                                <Input placeholder="Untitled" {...field} />
+                                <Input placeholder="Untitled" className="max-w-md" {...field} />
                             </FormControl>
                         </FormItem>
                     )}
@@ -93,12 +93,12 @@ export function EventCreatorForm() {
                         <FormItem>
                             <FormLabel>Event Description</FormLabel>
                             <FormControl>
-                                <Textarea placeholder="A cool event!" {...field} />
+                                <Textarea placeholder="A cool event!" className="max-w-md" {...field} />
                             </FormControl>
                         </FormItem>
                     )}
                 />
-                <div className='flex flex-row m-8'>
+                <div className='flex flex-row m-8 justify-center'>
                     <FormField
                         control={form.control}
                         name="dates"
