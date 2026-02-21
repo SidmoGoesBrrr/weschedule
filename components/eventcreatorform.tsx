@@ -74,31 +74,35 @@ export function EventCreatorForm() {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Event Title</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Untitled" {...field} />
-                            </FormControl>
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Event Description</FormLabel>
-                            <FormControl>
-                                <Textarea placeholder="A cool event!" {...field} />
-                            </FormControl>
-                        </FormItem>
-                    )}
-                />
-                <div className='flex flex-row m-8'>
+                <div className="flex justify-center">
+                    <FormField
+                        control={form.control}
+                        name="title"
+                        render={({ field }) => (
+                            <FormItem className="w-full max-w-md">
+                                <FormLabel>Event Title</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Untitled" className="w-full" {...field} />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                </div>
+                <div className="flex justify-center">
+                    <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                            <FormItem className="w-full max-w-md">
+                                <FormLabel>Event Description</FormLabel>
+                                <FormControl>
+                                    <Textarea placeholder="A cool event!" className="w-full" {...field} />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                </div>
+                <div className='flex flex-row m-8 justify-center items-center ml-18'>
                     <FormField
                         control={form.control}
                         name="dates"
@@ -117,7 +121,7 @@ export function EventCreatorForm() {
                             name="timestart"
                             render={() => (
                                 <FormItem>
-                                    <FormLabel>Start Time</FormLabel>
+                                    <FormLabel>No Earlier Than:</FormLabel>
                                     <FormControl>
                                         <TimeComboBox latest={latestTime} updateFormCallback={updateTimestart} />
                                     </FormControl>
@@ -128,8 +132,8 @@ export function EventCreatorForm() {
                             control={form.control}
                             name="timeend"
                             render={() => (
-                                <FormItem>
-                                    <FormLabel>End Time</FormLabel>
+                                <FormItem className="mt-2">
+                                    <FormLabel>No Later Than:</FormLabel>
                                     <FormControl>
                                         <TimeComboBox earliest={earliestTime} updateFormCallback={updateTimeend} />
                                     </FormControl>
@@ -138,7 +142,9 @@ export function EventCreatorForm() {
                         />
                     </div>
                 </div>
-                <Button type="submit">Submit</Button>
+                <div className="flex justify-center">
+                    <Button type="submit">Submit</Button>
+                </div>
             </form>
         </Form>
     )
