@@ -22,12 +22,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { TimeComboBox } from "@/components/timecombobox";
 import { DateSelector } from "@/components/dateselector";
 
+const errorMsgs = {
+    NO_TITLE: "Event title is required.",
+    TITLE_TOO_LONG: "Title is too long: maximum length is 50 characters.",
+    DESC_TOO_LONG: "Description too long: maximum length is 1000 characters.",
+    NO_DATES: "Please choose a date(s) for your event.",
+    NO_START_TIME: "Please choose a start time.",
+    NO_END_TIME: "Please choose an end time.",
+}
+
 const formSchema = z.object({
-    title: z.string().min(1).max(50),
-    description: z.string().min(0).max(1000),
-    dates: z.array(z.iso.date()),
-    timestart: z.iso.time(),
-    timeend: z.iso.time()
+    title: z.string().min(1, errorMsgs.NO_TITLE).max(50, errorMsgs.TITLE_TOO_LONG),
+    description: z.string().min(0).max(1000, errorMsgs.DESC_TOO_LONG),
+    dates: z.array(z.iso.date()).min(1, errorMsgs.NO_DATES),
+    timestart: z.iso.time(errorMsgs.NO_START_TIME),
+    timeend: z.iso.time(errorMsgs.NO_END_TIME),
 });
 
 export function EventCreatorForm() {
@@ -43,15 +52,31 @@ export function EventCreatorForm() {
     });
 
     const { setValue, getValues } = form;
-    const [earliestTime, setEarliestTime] = useState('');
-    const [latestTime, setLatestTime] = useState('');
+    const [state, setState] = useState({
+        earliestTime: '',
+        latestTime: '',
+        errors: [],
+    })
+    // console.log(errors);
     const updateTimestart = (newTime: any) => {
+        console.log("clearing start time selector errors!");
+        let newErrors = state.errors.filter((error) => error != errorMsgs.NO_START_TIME);
+        setState({
+            ...state,
+            earliestTime: newTime,
+            errors: newErrors,
+        })
         setValue("timestart", newTime);
-        setEarliestTime(newTime);
     };
     const updateTimeend = (newTime: any) => {
+        console.log("clearing end time selector errors!");
+        let newErrors = state.errors.filter((error) => error != errorMsgs.NO_END_TIME);
+        setState({
+            ...state,
+            latestTime: newTime,
+            errors: newErrors,
+        })
         setValue("timeend", newTime);
-        setLatestTime(newTime);
     }
     const watchedDates = form.watch("dates") ?? [];
     const dates = watchedDates.map((d) => new Date(d + "T00:00:00")); // parse as local
@@ -66,9 +91,27 @@ export function EventCreatorForm() {
         setValue("dates", isoStrings, { shouldValidate: true });
     };
 
+    function handleSubmit() {
+        const values = getValues();
+        // console.log("handling submitted values!", values);
+        const result = formSchema.safeParse(values);
+        if (result.success) {
+            console.log("good values!");
+        }
+        else {
+            console.log("bad values!");
+            const issues = result.error.issues;
+            setState({
+                ...state,
+                errors: issues.map(error => error.message),
+            })
+            console.log(issues);
+        }
+    }
+
     function onSubmit(values: z.infer<typeof formSchema>) {
         // only called when schema matches
-        console.log(values);
+        // console.log(values);
     }
 
     return (
@@ -80,9 +123,20 @@ export function EventCreatorForm() {
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Event Title</FormLabel>
-                            <FormControl>
+                            <FormControl
+                                onChange={() => {
+                                    console.log("clearing title field errors!");
+                                    let newErrors = state.errors.filter((error) => error != errorMsgs.TITLE_TOO_LONG);
+                                    setState({
+                                        ...state,
+                                        errors: newErrors,
+                                    })
+                                }}>
                                 <Input placeholder="Untitled" {...field} />
                             </FormControl>
+                            <FormDescription>
+                                {state.errors.includes(errorMsgs.TITLE_TOO_LONG) ? errorMsgs.TITLE_TOO_LONG : ""}
+                            </FormDescription>
                         </FormItem>
                     )}
                 />
@@ -92,9 +146,21 @@ export function EventCreatorForm() {
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Event Description</FormLabel>
-                            <FormControl>
-                                <Textarea placeholder="A cool event!" {...field} />
+                            <FormControl
+                                onChange={() => {
+                                    console.log("clearing description field errors!");
+                                    let newErrors = state.errors.filter((error) => error != errorMsgs.DESC_TOO_LONG);
+                                    setState({
+                                        ...state,
+                                        errors: newErrors,
+                                    })
+                                }}>
+                                <Textarea
+                                    placeholder="A cool event!" {...field} />
                             </FormControl>
+                            <FormDescription>
+                                {state.errors.includes(errorMsgs.DESC_TOO_LONG) ? errorMsgs.DESC_TOO_LONG : ""}
+                            </FormDescription>
                         </FormItem>
                     )}
                 />
@@ -105,9 +171,22 @@ export function EventCreatorForm() {
                         render={() => (
                             <FormItem>
                                 <FormLabel>Choose Available Dates</FormLabel>
-                                <FormControl>
-                                    <DateSelector dates={dates} updateFormCallback={updateDates} />
+                                <FormControl
+                                    onChange={() => {
+                                        console.log("clearing date selector errors!");
+                                        let newErrors = state.errors.filter((error) => error != errorMsgs.NO_DATES);
+                                        setState({
+                                            ...state,
+                                            errors: newErrors,
+                                        })
+                                    }}>
+                                    <DateSelector
+                                        dates={dates}
+                                        updateFormCallback={updateDates} />
                                 </FormControl>
+                                <FormDescription>
+                                    {state.errors.includes(errorMsgs.NO_DATES) ? errorMsgs.NO_DATES : ""}
+                                </FormDescription>
                             </FormItem>
                         )}
                     />
@@ -119,8 +198,13 @@ export function EventCreatorForm() {
                                 <FormItem>
                                     <FormLabel>Start Time</FormLabel>
                                     <FormControl>
-                                        <TimeComboBox latest={latestTime} updateFormCallback={updateTimestart} />
+                                        <TimeComboBox
+                                            latest={state.latestTime}
+                                            updateFormCallback={updateTimestart} />
                                     </FormControl>
+                                    <FormDescription>
+                                        {state.errors.includes(errorMsgs.NO_START_TIME) ? errorMsgs.NO_START_TIME : ""}
+                                    </FormDescription>
                                 </FormItem>
                             )}
                         />
@@ -131,14 +215,17 @@ export function EventCreatorForm() {
                                 <FormItem>
                                     <FormLabel>End Time</FormLabel>
                                     <FormControl>
-                                        <TimeComboBox earliest={earliestTime} updateFormCallback={updateTimeend} />
+                                        <TimeComboBox earliest={state.earliestTime} updateFormCallback={updateTimeend} />
                                     </FormControl>
+                                    <FormDescription>
+                                        {state.errors.includes(errorMsgs.NO_END_TIME) ? errorMsgs.NO_END_TIME : ""}
+                                    </FormDescription>
                                 </FormItem>
                             )}
                         />
                     </div>
                 </div>
-                <Button type="submit">Submit</Button>
+                <Button type="submit" onClick={handleSubmit}>Submit</Button>
             </form>
         </Form>
     )
