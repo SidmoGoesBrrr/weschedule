@@ -12,6 +12,7 @@ import {
     FormField,
     FormItem,
     FormLabel,
+    FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -198,6 +199,7 @@ export function EventCreatorForm() {
                                         <FormControl>
                                             <DateSelector dates={dates} updateFormCallback={updateDates} />
                                         </FormControl>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -402,6 +404,7 @@ export function EventCreatorForm() {
                                                                                         }}
                                                                                     />
                                                                                 </FormControl>
+                                                                                <FormMessage />
                                                                             </FormItem>
                                                                         )}
                                                                     />
@@ -476,6 +479,7 @@ export function EventCreatorForm() {
                                                                                         }}
                                                                                     />
                                                                                 </FormControl>
+                                                                                <FormMessage />
                                                                             </FormItem>
                                                                         )}
                                                                     />
