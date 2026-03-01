@@ -210,12 +210,13 @@ export function EventCreatorForm() {
                                                             const isoDates = getValues("dates") ?? [];
                                                             if (!isoDates.length) return;
 
-                                                            const baseDate = isoDates[0];
-                                                            let baseSlots =
-                                                                (getValues("timeslots") ?? []).filter(
-                                                                    (slot: { date: string }) =>
-                                                                        slot.date === baseDate,
-                                                                ) ?? [];
+                                                            const allSlots = getValues("timeslots") ?? [];
+                                                            const baseDate = isoDates.find((d) =>
+                                                                allSlots.some((slot: { date: string }) => slot.date === d)
+                                                            ) ?? isoDates[0];
+                                                            let baseSlots = allSlots.filter(
+                                                                (slot: { date: string }) => slot.date === baseDate,
+                                                            );
 
                                                             if (baseSlots.length === 0) {
                                                                 baseSlots = [
