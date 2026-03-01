@@ -31,7 +31,7 @@ function Calendar({ className, showOutsideDays = true, ...props }: CalendarProps
         table: "w-full border-collapse space-y-1",
         day_button: "size-9 p-0 font-base aria-selected:opacity-100 rounded-base border-2 border-border cursor-pointer transition-all duration-150 hover:bg-main/20 hover:border-black hover:scale-110",
         selected: "bg-black! text-white! rounded-base",
-        today: "bg-main text-foreground! rounded-base",
+        today: "bg-blue-500 text-foreground! rounded-base",
         outside: "text-foreground opacity-50 aria-selected:bg-none",
         disabled: "text-foreground opacity-50",
         range_start: "day-range-start bg-black! text-white! rounded-base",
