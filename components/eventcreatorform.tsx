@@ -19,11 +19,28 @@ import { Textarea } from "@/components/ui/textarea";
 import { TimeComboBox } from "@/components/timecombobox";
 import { DateSelector } from "@/components/dateselector";
 
-const timeslotSchema = z.object({
-    date: z.string(),
-    start: z.string(),
-    end: z.string(),
-});
+const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+const timeRegex = /^([01]?\d|2[0-3]):[0-5]\d$/;
+
+const timeslotSchema = z
+    .object({
+        date: z
+            .string()
+            .min(1, "Date is required")
+            .regex(isoDateRegex, "Date must be YYYY-MM-DD"),
+        start: z
+            .string()
+            .min(1, "Start time is required")
+            .regex(timeRegex, "Start must be HH:MM (24h)"),
+        end: z
+            .string()
+            .min(1, "End time is required")
+            .regex(timeRegex, "End must be HH:MM (24h)"),
+    })
+    .refine((data) => data.start < data.end, {
+        message: "Start time must be before end time",
+        path: ["end"],
+    });
 
 const formSchema = z.object({
     title: z.string().min(1).max(50),
