@@ -21,6 +21,10 @@ import { DateSelector } from "@/components/dateselector";
 
 const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
 const timeRegex = /^([01]?\d|2[0-3]):[0-5]\d$/;
+const toMinutes = (time: string) => {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+};
 
 const timeslotSchema = z
     .object({
@@ -37,7 +41,7 @@ const timeslotSchema = z
             .min(1, "End time is required")
             .regex(timeRegex, "End must be HH:MM (24h)"),
     })
-    .refine((data) => data.start < data.end, {
+    .refine((data) => toMinutes(data.start) < toMinutes(data.end), {
         message: "Start time must be before end time",
         path: ["end"],
     });
