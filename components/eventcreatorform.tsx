@@ -112,21 +112,27 @@ export function EventCreatorForm() {
         // If using the same times for all days, ensure new dates get
         // the canonical set of timeslots.
         if (sameTimesForAll && isoStrings.length > 0) {
-            const baseDate = isoStrings[0];
-            let baseSlots =
-                (getValues("timeslots") ?? []).filter(
-                    (slot: { date: string }) => slot.date === baseDate,
-                ) ?? [];
-
-            if (baseSlots.length === 0) {
-                baseSlots = [{ date: baseDate, start: "", end: "" }];
+            const currentTimeslots = getValues("timeslots") ?? [];
+            
+            // Find the first date that has actual timeslots
+            let baseSlots: { start: string; end: string }[] = [];
+            for (const dateStr of isoStrings) {
+                const slotsForDate = currentTimeslots.filter(
+                    (slot: { date: string }) => slot.date === dateStr,
+                );
+                if (slotsForDate.length > 0) {
+                    baseSlots = slotsForDate.map((s: { start: string; end: string }) => ({
+                        start: s.start,
+                        end: s.end,
+                    }));
+                    break;
+                }
             }
 
-            const baseShapes = baseSlots.map((s: { start: string; end: string }) => ({
-                start: s.start,
-                end: s.end,
-            }));
-            syncTimeslotsForAllDates(baseShapes);
+            // Only sync if we found actual base slots to avoid overwriting with blanks
+            if (baseSlots.length > 0) {
+                syncTimeslotsForAllDates(baseSlots);
+            }
         }
     };
 
@@ -536,7 +542,7 @@ export function EventCreatorForm() {
                     </div>
                 </div>
                 <div className="flex justify-center">
-                    <Button type="submit">Submit</Button>
+                    <Button type="submit">Create Event!</Button>
                 </div>
             </form>
         </Form>
