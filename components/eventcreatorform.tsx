@@ -134,7 +134,7 @@ export function EventCreatorForm() {
                                 }}>
                                 <Input placeholder="Untitled" {...field} />
                             </FormControl>
-                            <FormDescription>
+                            <FormDescription className='error'>
                                 {state.errors.includes(errorMsgs.TITLE_TOO_LONG) ? errorMsgs.TITLE_TOO_LONG : ""}
                             </FormDescription>
                         </FormItem>
@@ -158,7 +158,7 @@ export function EventCreatorForm() {
                                 <Textarea
                                     placeholder="A cool event!" {...field} />
                             </FormControl>
-                            <FormDescription>
+                            <FormDescription className='error'>
                                 {state.errors.includes(errorMsgs.DESC_TOO_LONG) ? errorMsgs.DESC_TOO_LONG : ""}
                             </FormDescription>
                         </FormItem>
@@ -184,7 +184,7 @@ export function EventCreatorForm() {
                                         dates={dates}
                                         updateFormCallback={updateDates} />
                                 </FormControl>
-                                <FormDescription>
+                                <FormDescription className='error'>
                                     {state.errors.includes(errorMsgs.NO_DATES) ? errorMsgs.NO_DATES : ""}
                                 </FormDescription>
                             </FormItem>
@@ -202,7 +202,7 @@ export function EventCreatorForm() {
                                             latest={state.latestTime}
                                             updateFormCallback={updateTimestart} />
                                     </FormControl>
-                                    <FormDescription>
+                                    <FormDescription className='error'>
                                         {state.errors.includes(errorMsgs.NO_START_TIME) ? errorMsgs.NO_START_TIME : ""}
                                     </FormDescription>
                                 </FormItem>
@@ -217,7 +217,7 @@ export function EventCreatorForm() {
                                     <FormControl>
                                         <TimeComboBox earliest={state.earliestTime} updateFormCallback={updateTimeend} />
                                     </FormControl>
-                                    <FormDescription>
+                                    <FormDescription className='error'>
                                         {state.errors.includes(errorMsgs.NO_END_TIME) ? errorMsgs.NO_END_TIME : ""}
                                     </FormDescription>
                                 </FormItem>

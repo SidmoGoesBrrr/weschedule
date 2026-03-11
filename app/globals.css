@@ -38,6 +38,10 @@
   --chart-active-dot: #fff;
 }
 
+.error {
+  color: red;
+}
+
 @theme inline {
   --color-main: var(--main);
   --color-background: var(--background);
