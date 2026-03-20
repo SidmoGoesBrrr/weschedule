@@ -43,7 +43,7 @@ export function EventCreatorForm() {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            title: "Untitled",
+            title: "",
             description: "",
             dates: [],
             timestart: "",
@@ -56,6 +56,9 @@ export function EventCreatorForm() {
         earliestTime: '',
         latestTime: '',
         errors: [],
+    })
+    useEffect(() => {
+        console.log('new errors: ', state.errors);
     })
     // console.log(errors);
     const updateTimestart = (newTime: any) => {
@@ -82,6 +85,12 @@ export function EventCreatorForm() {
     const dates = watchedDates.map((d) => new Date(d + "T00:00:00")); // parse as local
 
     const updateDates = (newDates: Date[]) => {
+        console.log("clearing date selector errors!");
+        let newErrors = state.errors.filter((error) => error != errorMsgs.NO_DATES);
+        setState({
+            ...state,
+            errors: newErrors,
+        })
         const isoStrings = newDates.map((d) => {
             const yyyy = d.getFullYear();
             const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -126,7 +135,7 @@ export function EventCreatorForm() {
                             <FormControl
                                 onChange={() => {
                                     console.log("clearing title field errors!");
-                                    let newErrors = state.errors.filter((error) => error != errorMsgs.TITLE_TOO_LONG);
+                                    let newErrors = state.errors.filter((error) => error != errorMsgs.TITLE_TOO_LONG && error != errorMsgs.NO_TITLE);
                                     setState({
                                         ...state,
                                         errors: newErrors,
@@ -136,6 +145,7 @@ export function EventCreatorForm() {
                             </FormControl>
                             <FormDescription className='error'>
                                 {state.errors.includes(errorMsgs.TITLE_TOO_LONG) ? errorMsgs.TITLE_TOO_LONG : ""}
+                                {state.errors.includes(errorMsgs.NO_TITLE) ? errorMsgs.NO_TITLE : ""}
                             </FormDescription>
                         </FormItem>
                     )}
@@ -171,15 +181,7 @@ export function EventCreatorForm() {
                         render={() => (
                             <FormItem>
                                 <FormLabel>Choose Available Dates</FormLabel>
-                                <FormControl
-                                    onChange={() => {
-                                        console.log("clearing date selector errors!");
-                                        let newErrors = state.errors.filter((error) => error != errorMsgs.NO_DATES);
-                                        setState({
-                                            ...state,
-                                            errors: newErrors,
-                                        })
-                                    }}>
+                                <FormControl>
                                     <DateSelector
                                         dates={dates}
                                         updateFormCallback={updateDates} />
