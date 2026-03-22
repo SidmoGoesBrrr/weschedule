@@ -55,13 +55,15 @@ export function TimeComboBox(props: any) {
     const {
         earliest,
         latest,
-        updateFormCallback
+        updateFormCallback,
+        value: controlledValue,
     } = props;
     const [open, setOpen] = useState(false)
-    const [value, setValue] = useState('');
+    const [internalValue, setInternalValue] = useState('');
+    const value = controlledValue !== undefined ? controlledValue : internalValue;
     let update = (newValue: any) => {
         updateFormCallback(newValue);
-        setValue(newValue);
+        if (controlledValue === undefined) setInternalValue(newValue);
     };
     let earliestIndex = -1;
     let latestIndex = allTimes.length;

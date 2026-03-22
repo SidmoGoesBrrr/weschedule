@@ -15,11 +15,11 @@ export default function HeroPage() {
       {/* Header */}
       <header className="w-full border-b-2 border-border bg-background sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-heading text-foreground">
+          <Link href="/" className="text-2xl font-heading text-main">
             WeSchedule
           </Link>
           <nav className="flex items-center gap-4">
-            <Link href="/create-event">
+            <Link href="/eventcreator">
               <Button variant="neutral" size="sm">
                 Create Event
               </Button>
@@ -33,17 +33,17 @@ export default function HeroPage() {
         <div className="max-w-6xl w-full mx-auto">
           {/* Main Message */}
           <div className="text-center mb-12">
-            <h1 className="text-3xl md:text-5xl font-heading mb-6 leading-tight">
+            <h1 className="text-3xl md:text-5xl font-heading font-semibold mb-6 leading-tight [font-family:var(--font-new-york)]">
               meet smarter with
               <br />
-              <span className="text-6xl md:text-8xl text-main mt-5 block">WeSchedule</span>
+              <span className="text-6xl md:text-8xl text-main font-bold mt-5 block [font-family:var(--font-new-york)]">WeSchedule</span>
             </h1>
 
             <p className="text-xl md:text-2xl text-foreground/80 max-w-2xl mx-auto mb-8">
               Schedule group meetings effortlessly with smart time suggestions, 
               calendar sync, and the Corq app.
             </p>
-            <Link href="/create-event">
+            <Link href="/eventcreator">
               <Button size="lg" className="text-lg px-8 py-6">
                 Create Event
               </Button>
@@ -76,7 +76,7 @@ export default function HeroPage() {
       {/* How It Works Section - Using Neobrutalism Card Pattern */}
       <section className="w-full bg-secondary-background py-20 px-4 border-t-2 border-border">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-5xl md:text-6xl font-heading text-center mb-16">
+          <h2 className="text-5xl md:text-6xl font-heading text-center mb-16 [font-family:var(--font-new-york)]">
             How It Works
           </h2>
           
@@ -84,7 +84,7 @@ export default function HeroPage() {
             {/* Step 1 - Neobrutalism Card */}
             <div className="border-2 border-border bg-background p-8 shadow-shadow rounded-base">
               <div className="text-4xl font-heading mb-4 text-main">01</div>
-              <h3 className="text-2xl font-heading mb-4">Heading 1 here</h3>
+              <h3 className="text-2xl font-heading mb-4 [font-family:var(--font-new-york)]">Heading 1 here</h3>
               <p className="text-foreground/80 font-base">
                 description 1 here
               </p>
@@ -93,7 +93,7 @@ export default function HeroPage() {
             {/* Step 2 - Neobrutalism Card */}
             <div className="border-2 border-border bg-background p-8 shadow-shadow rounded-base">
               <div className="text-4xl font-heading mb-4 text-main">02</div>
-              <h3 className="text-2xl font-heading mb-4">Heading 2 here</h3>
+              <h3 className="text-2xl font-heading mb-4 [font-family:var(--font-new-york)]">Heading 2 here</h3>
               <p className="text-foreground/80 font-base">
                 description 2 here
               </p>
@@ -102,7 +102,7 @@ export default function HeroPage() {
             {/* Step 3 - Neobrutalism Card */}
             <div className="border-2 border-border bg-background p-8 shadow-shadow rounded-base">
               <div className="text-4xl font-heading mb-4 text-main">03</div>
-            <h3 className="text-2xl font-heading mb-4">Heading 3 here</h3>
+            <h3 className="text-2xl font-heading mb-4 [font-family:var(--font-new-york)]">Heading 3 here</h3>
               <p className="text-foreground/80 font-base">
                 description 3 here
               </p>
