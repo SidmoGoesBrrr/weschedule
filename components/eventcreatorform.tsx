@@ -5,6 +5,8 @@ import { z } from 'zod';
 import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import {
     Form,
@@ -124,7 +126,7 @@ export function EventCreatorForm() {
         // the canonical set of timeslots.
         if (sameTimesForAll && isoStrings.length > 0) {
             const currentTimeslots = getValues("timeslots") ?? [];
-            
+
             // Find the first date that has actual timeslots
             let baseSlots: { start: string; end: string }[] = [];
             for (const dateStr of isoStrings) {
@@ -150,6 +152,23 @@ export function EventCreatorForm() {
     function onSubmit(values: z.infer<typeof formSchema>) {
         // only called when schema matches
         console.log(values);
+    }
+
+    function verifyValues() {
+        const values = getValues();
+        // console.log("handling submitted values!", values);
+        const result = formSchema.safeParse(values);
+        if (result.success) {
+            console.log("good values!");
+            toast.success("Event successfully created!");
+            // send to some other page?
+        }
+        else {
+            console.log("bad values!");
+            const issues = result.error.issues;
+            console.log(issues);
+            toast.error("Event could not be created. Please resolve all issues and try again.");
+        }
     }
 
     return (
@@ -329,7 +348,7 @@ export function EventCreatorForm() {
                                                     </Button>
                                                 </div>
                                                 {dateFields.length === 0 ? (
-                                                    <p className="text-xs text-foreground/60 italic">
+                                                    <p className="text-xs text-foreground/60 italic" style={{ color: 'red' }}>
                                                         No timeslots for this day yet.
                                                     </p>
                                                 ) : (
@@ -399,7 +418,7 @@ export function EventCreatorForm() {
                                                                                                         ) => ({
                                                                                                             start:
                                                                                                                 i ===
-                                                                                                                localIndex
+                                                                                                                    localIndex
                                                                                                                     ? v
                                                                                                                     : s.start,
                                                                                                             end: s.end,
@@ -475,7 +494,7 @@ export function EventCreatorForm() {
                                                                                                                 s.start,
                                                                                                             end:
                                                                                                                 i ===
-                                                                                                                localIndex
+                                                                                                                    localIndex
                                                                                                                     ? v
                                                                                                                     : s.end,
                                                                                                         }),
@@ -559,7 +578,7 @@ export function EventCreatorForm() {
                     </div>
                 </div>
                 <div className="flex justify-center">
-                    <Button type="submit">Create Event!</Button>
+                    <Button type="submit" onClick={verifyValues}>Create Event!</Button>
                 </div>
             </form>
         </Form>
