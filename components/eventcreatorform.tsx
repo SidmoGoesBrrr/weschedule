@@ -150,30 +150,38 @@ export function EventCreatorForm() {
     };
 
     function onSubmit(values: z.infer<typeof formSchema>) {
-        // only called when schema matches
+        // only called when schema is valid
         console.log(values);
+        
+        // note for db integration: ensure this is only called after
+        // a success response from db
+        toast.success("Event successfully created!");
+
+        // send to some other page?
     }
 
+    function onError(errors: Object) {
+        toast.error("Event could not be created. Please resolve all issues and try again.");
+    }
+
+    // debug
     function verifyValues() {
         const values = getValues();
         // console.log("handling submitted values!", values);
         const result = formSchema.safeParse(values);
         if (result.success) {
             console.log("good values!");
-            toast.success("Event successfully created!");
-            // send to some other page?
         }
         else {
             console.log("bad values!");
             const issues = result.error.issues;
             console.log(issues);
-            toast.error("Event could not be created. Please resolve all issues and try again.");
         }
     }
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-8">
                 <div className="flex justify-center">
                     <div className="w-full max-w-3xl rounded-xl border border-[var(--border)] bg-[var(--secondary-background)] p-6 shadow-[var(--shadow)]">
                         <div className="space-y-6">
