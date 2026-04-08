@@ -1,4 +1,5 @@
 'use server'
+import { redirect } from "next/navigation";
 import { createServerClient} from "@supabase/ssr";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
@@ -101,6 +102,7 @@ export async function userLogin(formData:FormData){
                     const token = jwt.sign({name:users[i].name, email:users[i].email}, process.env.JWT_KEY as string);
                     cookieStore.set("userToken", token, {path:"/"});
                     //reroute to create page(tba)
+                    redirect("\eventcreator");
                     return successResponse;
                 
                     
@@ -111,6 +113,7 @@ export async function userLogin(formData:FormData){
                         const token = jwt.sign({name:users[i].name, email:users[i].email}, process.env.JWT_KEY as string);
                         cookieStore.set("userToken", token);
                         //reroute to create page(tba)
+                        redirect("/eventcreator");
                         return(successResponse);
                     }
                 }

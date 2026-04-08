@@ -113,7 +113,7 @@ export default function LoginPage() {
                             </form>
 
                             <div className="mt-6 flex items-center justify-between text-sm text-foreground/70">
-                                <span>Need an invite? Ask your organizer.</span>
+                                <span>Try email: duck123@gmail.com, password:freak</span>
                                 <Link href="/" className="font-heading text-main hover:underline">
                                     Back home
                                 </Link>
