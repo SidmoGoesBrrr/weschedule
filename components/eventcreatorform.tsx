@@ -1,5 +1,6 @@
 'use client';
 
+import Link from "next/link";
 import { Plus, Trash2 } from 'lucide-react';
 import { z } from 'zod';
 import { useForm, useFieldArray } from "react-hook-form"
@@ -229,7 +230,7 @@ export function EventCreatorForm() {
                 </div>
                 <div className="flex justify-center">
                     <div className="w-full max-w-3xl rounded-xl border border-[var(--border)] bg-[var(--secondary-background)] p-6 shadow-[var(--shadow)]">
-                        <div className="flex flex-row flex-wrap justify-center items-start gap-8">
+                        <div className="flex flex-row flex-wrap justify-center items-start gap-8 min-h-0">
                             <FormField
                                 control={form.control}
                                 name="dates"
@@ -243,7 +244,9 @@ export function EventCreatorForm() {
                                     </FormItem>
                                 )}
                             />
-                            <div className="flex flex-col gap-6 w-full">
+                            <div
+                                className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-6 md:max-w-xl overflow-y-auto overscroll-y-contain max-h-[min(42vh,22rem)] pr-1 [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:var(--border)_var(--secondary-background)] [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-foreground/10 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-foreground/45 hover:[&::-webkit-scrollbar-thumb]:bg-foreground/60"
+                            >
                                 <FormField
                                     control={form.control}
                                     name="sameTimesForAll"
@@ -372,7 +375,7 @@ export function EventCreatorForm() {
                                                             return (
                                                                 <div
                                                                     key={field.id}
-                                                                    className="flex flex-row flex-wrap items-end justify-center gap-4 rounded-lg border border-border bg-background/50 p-4"
+                                                                    className="flex flex-row flex-wrap items-end justify-start gap-4 rounded-lg border border-border bg-background/50 p-4"
                                                                 >
                                                                     <FormField
                                                                         control={form.control}
@@ -382,6 +385,7 @@ export function EventCreatorForm() {
                                                                                 <FormLabel>Start</FormLabel>
                                                                                 <FormControl>
                                                                                     <TimeComboBox
+                                                                                        slotDate={dateIso}
                                                                                         value={slot.start}
                                                                                         latest={slot.end}
                                                                                         updateFormCallback={(v: string) => {
@@ -456,6 +460,7 @@ export function EventCreatorForm() {
                                                                                 <FormLabel>End</FormLabel>
                                                                                 <FormControl>
                                                                                     <TimeComboBox
+                                                                                        slotDate={dateIso}
                                                                                         value={slot.end}
                                                                                         earliest={slot.start}
                                                                                         updateFormCallback={(v: string) => {
@@ -567,7 +572,7 @@ export function EventCreatorForm() {
                                                                                 remove(index);
                                                                             }
                                                                         }}
-                                                                        className="shrink-0"
+                                                                        className="shrink-0 self-center -mt-14"
                                                                         aria-label="Remove timeslot"
                                                                     >
                                                                         <Trash2 className="size-4" />
@@ -585,8 +590,11 @@ export function EventCreatorForm() {
                         </div>
                     </div>
                 </div>
-                <div className="flex justify-center">
-                    <Button type="submit" onClick={verifyValues}>Create Event!</Button>
+                <div className="flex justify-center gap-4">
+                    <Button type="button" variant="neutral" asChild>
+                        <Link href="/">Cancel</Link>
+                    </Button>
+                    <Button type="submit">Create Event!</Button>
                 </div>
             </form>
         </Form>
