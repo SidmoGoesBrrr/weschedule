@@ -3,6 +3,7 @@
 import { Plus, Trash2 } from 'lucide-react';
 import { z } from 'zod';
 import { useForm, useFieldArray } from "react-hook-form"
+import { useRouter } from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod"
 
 import { toast } from "sonner";
@@ -90,6 +91,8 @@ export function EventCreatorForm() {
     const sameTimesForAll = form.watch("sameTimesForAll");
     const dates = watchedDates.map((d) => new Date(d + "T00:00:00")); // parse as local
 
+    const router = useRouter();
+
     const syncTimeslotsForAllDates = (baseSlots: { start: string; end: string }[]) => {
         const isoDates = getValues("dates") ?? [];
         if (!isoDates.length) {
@@ -152,12 +155,26 @@ export function EventCreatorForm() {
     function onSubmit(values: z.infer<typeof formSchema>) {
         // only called when schema is valid
         console.log(values);
-        
-        // note for db integration: ensure this is only called after
-        // a success response from db
-        toast.success("Event successfully created!");
+        async function asyncSubmit() {
+            // values to send: title, desc, location, timeslots
+            
+            let response = { success: true }; //stub
+            // let response = await <send request here>
 
-        // send to some other page?
+            // possible responses
+            // warning: event timeslots overlap w/ existing reserved timeslots 
+            // failure: not logged in?
+            // failure: length restrictions validated on title, desc, and/or location
+            if (response.success) {
+                toast.success("Event successfully created!");
+                // send to homepage
+                router.push('/');
+            }
+            else {
+                toast.error("Uh oh!"); //stub
+            }
+        }
+        asyncSubmit();
     }
 
     function onError(errors: Object) {
