@@ -1,5 +1,6 @@
 'use client';
 
+import Link from "next/link";
 import { Plus, Trash2 } from 'lucide-react';
 import { z } from 'zod';
 import { useForm, useFieldArray } from "react-hook-form"
@@ -547,7 +548,10 @@ export function EventCreatorForm() {
                         </div>
                     </div>
                 </div>
-                <div className="flex justify-center">
+                <div className="flex justify-center gap-4">
+                    <Button type="button" variant="neutral" asChild>
+                        <Link href="/">Cancel</Link>
+                    </Button>
                     <Button type="submit">Create Event!</Button>
                 </div>
             </form>
