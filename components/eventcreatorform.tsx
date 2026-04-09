@@ -6,6 +6,8 @@ import { z } from 'zod';
 import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import {
     Form,
@@ -20,6 +22,16 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { TimeComboBox } from "@/components/timecombobox";
 import { DateSelector } from "@/components/dateselector";
+
+const errorMsgs = {
+    NO_TITLE: "Event title is required.",
+    TITLE_TOO_LONG: "Title is too long: maximum length is 50 characters.",
+    DESC_TOO_LONG: "Description too long: maximum length is 1000 characters.",
+    LOCATION_TOO_LONG: "Location too long: maximum length is 200 characters.",
+    NO_DATES: "Please choose a date(s) for your event.",
+    NO_START_TIME: "Please choose a start time.",
+    NO_END_TIME: "Please choose an end time.",
+}
 
 const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
 const timeRegex = /^([01]?\d|2[0-3]):[0-5]\d$/;
@@ -36,11 +48,11 @@ const timeslotSchema = z
             .regex(isoDateRegex, "Date must be YYYY-MM-DD"),
         start: z
             .string()
-            .min(1, "Start time is required")
+            .min(1, errorMsgs.NO_START_TIME)
             .regex(timeRegex, "Start must be HH:MM (24h)"),
         end: z
             .string()
-            .min(1, "End time is required")
+            .min(1, errorMsgs.NO_END_TIME)
             .regex(timeRegex, "End must be HH:MM (24h)"),
     })
     .refine((data) => toMinutes(data.start) < toMinutes(data.end), {
@@ -49,10 +61,10 @@ const timeslotSchema = z
     });
 
 const formSchema = z.object({
-    title: z.string().min(1).max(50),
-    description: z.string().min(0).max(1000),
-    location: z.string().min(0).max(200),
-    dates: z.array(z.iso.date()),
+    title: z.string().min(1, errorMsgs.NO_TITLE).max(50, errorMsgs.TITLE_TOO_LONG),
+    description: z.string().min(0).max(1000, errorMsgs.DESC_TOO_LONG),
+    location: z.string().min(0).max(200, errorMsgs.LOCATION_TOO_LONG),
+    dates: z.array(z.iso.date()).min(1, errorMsgs.NO_DATES),
     sameTimesForAll: z.boolean(),
     timeslots: z.array(timeslotSchema).min(1, 'Add at least one timeslot'),
 });
@@ -115,7 +127,7 @@ export function EventCreatorForm() {
         // the canonical set of timeslots.
         if (sameTimesForAll && isoStrings.length > 0) {
             const currentTimeslots = getValues("timeslots") ?? [];
-            
+
             // Find the first date that has actual timeslots
             let baseSlots: { start: string; end: string }[] = [];
             for (const dateStr of isoStrings) {
@@ -139,13 +151,38 @@ export function EventCreatorForm() {
     };
 
     function onSubmit(values: z.infer<typeof formSchema>) {
-        // only called when schema matches
+        // only called when schema is valid
         console.log(values);
+        
+        // note for db integration: ensure this is only called after
+        // a success response from db
+        toast.success("Event successfully created!");
+
+        // send to some other page?
+    }
+
+    function onError(errors: Object) {
+        toast.error("Event could not be created. Please resolve all issues and try again.");
+    }
+
+    // debug
+    function verifyValues() {
+        const values = getValues();
+        // console.log("handling submitted values!", values);
+        const result = formSchema.safeParse(values);
+        if (result.success) {
+            console.log("good values!");
+        }
+        else {
+            console.log("bad values!");
+            const issues = result.error.issues;
+            console.log(issues);
+        }
     }
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-8">
                 <div className="flex justify-center">
                     <div className="w-full max-w-3xl rounded-xl border border-[var(--border)] bg-[var(--secondary-background)] p-6 shadow-[var(--shadow)]">
                         <div className="space-y-6">
@@ -158,6 +195,7 @@ export function EventCreatorForm() {
                                         <FormControl>
                                             <Input placeholder="Name your event" className="w-full" {...field} />
                                         </FormControl>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -170,6 +208,7 @@ export function EventCreatorForm() {
                                         <FormControl>
                                             <Textarea placeholder="Give it a cool description" className="w-full" {...field} />
                                         </FormControl>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -182,6 +221,7 @@ export function EventCreatorForm() {
                                         <FormControl>
                                             <Input placeholder="Where2meet?" className="w-full" {...field} />
                                         </FormControl>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -319,7 +359,7 @@ export function EventCreatorForm() {
                                                     </Button>
                                                 </div>
                                                 {dateFields.length === 0 ? (
-                                                    <p className="text-xs text-foreground/60 italic">
+                                                    <p className="text-xs text-foreground/60 italic" style={{ color: 'red' }}>
                                                         No timeslots for this day yet.
                                                     </p>
                                                 ) : (
@@ -390,7 +430,7 @@ export function EventCreatorForm() {
                                                                                                         ) => ({
                                                                                                             start:
                                                                                                                 i ===
-                                                                                                                localIndex
+                                                                                                                    localIndex
                                                                                                                     ? v
                                                                                                                     : s.start,
                                                                                                             end: s.end,
@@ -467,7 +507,7 @@ export function EventCreatorForm() {
                                                                                                                 s.start,
                                                                                                             end:
                                                                                                                 i ===
-                                                                                                                localIndex
+                                                                                                                    localIndex
                                                                                                                     ? v
                                                                                                                     : s.end,
                                                                                                         }),
