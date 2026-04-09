@@ -51,12 +51,20 @@ allTimes = allTimes.flatMap((time: any) => {
 });
 // console.log(times);
 
+function localDateIso(d: Date): string {
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, "0")
+    const day = String(d.getDate()).padStart(2, "0")
+    return `${y}-${m}-${day}`
+}
+
 export function TimeComboBox(props: any) {
     const {
         earliest,
         latest,
         updateFormCallback,
         value: controlledValue,
+        slotDate,
     } = props;
     const [open, setOpen] = useState(false)
     const [internalValue, setInternalValue] = useState('');
@@ -76,7 +84,15 @@ export function TimeComboBox(props: any) {
         }
     }
     
-    const times = allTimes.slice(earliestIndex + 1, latestIndex);
+    let times = allTimes.slice(earliestIndex + 1, latestIndex)
+
+    if (slotDate && slotDate === localDateIso(new Date())) {
+        const now = Date.now()
+        times = times.filter(
+            (time: { value: string }) =>
+                new Date(`${slotDate}T${time.value}:00`).getTime() > now,
+        )
+    }
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -88,7 +104,8 @@ export function TimeComboBox(props: any) {
                     className="w-full justify-between md:max-w-[200px]"
                 >
                     {value
-                        ? times.find((time: any) => time.value === value)?.label
+                        ? (times.find((time: any) => time.value === value)?.label ??
+                            allTimes.find((time: any) => time.value === value)?.label)
                         : "Select time..."}
                     <ChevronsUpDown />
                 </Button>

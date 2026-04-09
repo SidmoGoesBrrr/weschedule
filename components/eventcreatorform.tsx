@@ -342,6 +342,7 @@ export function EventCreatorForm() {
                                                                                 <FormLabel>Start</FormLabel>
                                                                                 <FormControl>
                                                                                     <TimeComboBox
+                                                                                        slotDate={dateIso}
                                                                                         value={slot.start}
                                                                                         latest={slot.end}
                                                                                         updateFormCallback={(v: string) => {
@@ -416,6 +417,7 @@ export function EventCreatorForm() {
                                                                                 <FormLabel>End</FormLabel>
                                                                                 <FormControl>
                                                                                     <TimeComboBox
+                                                                                        slotDate={dateIso}
                                                                                         value={slot.end}
                                                                                         earliest={slot.start}
                                                                                         updateFormCallback={(v: string) => {
