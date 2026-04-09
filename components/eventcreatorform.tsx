@@ -572,7 +572,7 @@ export function EventCreatorForm() {
                                                                                 remove(index);
                                                                             }
                                                                         }}
-                                                                        className="shrink-0 self-center -mt-15"
+                                                                        className="shrink-0 self-center -mt-14"
                                                                         aria-label="Remove timeslot"
                                                                     >
                                                                         <Trash2 className="size-4" />

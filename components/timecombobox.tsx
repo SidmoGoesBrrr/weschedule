@@ -94,6 +94,17 @@ export function TimeComboBox(props: any) {
         )
     }
 
+    useEffect(() => {
+        if (!value) return
+        const isValidSelection = times.some((time: { value: string }) => time.value === value)
+        if (!isValidSelection) {
+            updateFormCallback("")
+            if (controlledValue === undefined) setInternalValue("")
+        }
+    }, [value, times, controlledValue, updateFormCallback])
+
+    const selectedTimeLabel = times.find((time: { value: string }) => time.value === value)?.label
+
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
@@ -103,10 +114,7 @@ export function TimeComboBox(props: any) {
                     aria-expanded={open}
                     className="w-full justify-between md:max-w-[200px]"
                 >
-                    {value
-                        ? (times.find((time: any) => time.value === value)?.label ??
-                            allTimes.find((time: any) => time.value === value)?.label)
-                        : "Select time..."}
+                    {selectedTimeLabel ?? "Select time..."}
                     <ChevronsUpDown />
                 </Button>
             </PopoverTrigger>
