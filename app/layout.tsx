@@ -37,8 +37,9 @@ export default function RootLayout({
         className={`${newYork.className} ${newYork.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
-        <Toaster />
 
+        <Toaster />
+        
       </body>
     </html>
   );
