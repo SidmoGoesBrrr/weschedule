@@ -165,6 +165,42 @@ export function EventCreatorForm() {
             // warning: event timeslots overlap w/ existing reserved timeslots 
             // failure: not logged in?
             // failure: length restrictions validated on title, desc, and/or location
+
+            // drafting createEvent()
+            // async function createEvent(title: string, description: string, location: string, timeslots: Object[]) {
+            //     let body = {
+            //         title: title,
+            //         description: description,
+            //         location: location,
+            //         timeslots: timeslots,
+            //     }
+            //     let response = await <request thing here>;
+            //     return { success: response.success }
+            // }
+
+            // logic flow for createEvent in db
+            // validate credentials
+            // validate title, description, location
+            // check for overlap with timeslots in events listed in user's event_attend
+            
+            // logic flow for deleteEvent in db (for a request sent from client) (note to add this button in event dashboard)
+            // (client) alert dialog to confirm delete
+            // validate credentials
+            // ...
+
+            // event table
+            // columns: owner_email, event_id, title, desc, timeslot : "MM/DD/YYYY;NN:NN;NN:NN", 
+            // rows: multiple rows, 1 per date per timeslot
+
+            // user table 
+            // columns: email, name, pwdHash
+            // rows: 1 per user
+
+            // operations on events
+            // createEvent(...info)
+            // deleteEvent(id)
+            // getEvent(id)
+            // modifyEvent(...info) i.e. availabilities, title, desc, location, timeslots(?)
             if (response.success) {
                 toast.success("Event successfully created!");
                 // send to homepage
