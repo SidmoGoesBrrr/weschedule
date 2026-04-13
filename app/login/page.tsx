@@ -1,12 +1,17 @@
 
 "use client"
+//line 74 to add server function for login and sign up
 
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
-import { userLogin } from "@/lib/serverUserUtil"
+import { signUp, login } from "@/lib/clientUserUtil"
+import { useState } from "react"
+import { getUser } from "@/lib/serverUserUtil"
 
 export default function LoginPage() {
+    const [error, setError] = useState("");
+    const [isLogin, setIsLogin] = useState(true);//if not login, then it is sign up
     return (
         <div className="min-h-screen w-full bg-background">
             <header className="w-full border-b-2 border-border bg-background sticky top-0 z-50">
@@ -63,17 +68,28 @@ export default function LoginPage() {
                     <section className="flex items-center justify-center">
                         <div className="w-full max-w-lg border-2 border-border bg-secondary-background shadow-shadow rounded-base p-6 md:p-8">
                             <div className="mb-8">
-                                <h2 className="text-3xl md:text-4xl font-heading [font-family:var(--font-new-york)]">
-                                    Login
+                                <button onClick={(event)=>{
+                                    event.preventDefault();
+                                    setIsLogin(!isLogin);
+                                }} className="bg-blue-400 hover:bg-amber-400 w-11 h-7 rounded-3xl active:bg-amber-700"> mode</button>
+                                
+                                <h2 className="text-3xl md:text-4xl font-heading [font-family:var(--font-new-york)] inline-block">
+                                    {isLogin?"Login":"Sign Up"}
                                 </h2>
                                 <p className="mt-2 text-foreground/70">
                                     Enter your email and password to continue.
                                 </p>
+                                <p className="text-red-600">{error}</p>
                             </div>
 
                             <form
-                                action={async (formData) => {
-                                    console.log(await userLogin(formData))
+                                action ={async (data)=>{
+                                    const password = data.get("password") as string;
+                                    const email = data.get("email") as string; 
+                                    const error = isLogin?await login(email, password): await signUp(email, password);
+                                    setError(error?.message?error?.message:"success");
+                                    console.log(await getUser());
+                                   
                                 }}
                                 className="space-y-5"
                             >

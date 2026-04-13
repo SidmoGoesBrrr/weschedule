@@ -19,7 +19,7 @@ export default function HeroPage() {
             WeSchedule
           </Link>
           <nav className="flex items-center gap-4">
-            <Link href="/login">
+            <Link href="/eventcreator">
               <Button variant="neutral" size="sm">
                 Create Event
               </Button>
@@ -43,7 +43,7 @@ export default function HeroPage() {
               Schedule group meetings effortlessly with smart time suggestions, 
               calendar sync, and the Corq app.
             </p>
-            <Link href="/login">
+            <Link href="/eventcreator">
               <Button size="lg" className="text-lg px-8 py-6">
                 Create Event
               </Button>
