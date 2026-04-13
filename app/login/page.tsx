@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button"
 import { signUp, login } from "@/lib/clientUserUtil"
 import { useState } from "react"
 import { getUser } from "@/lib/serverUserUtil"
+import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
+    const router = useRouter();
     const [error, setError] = useState("");
     const [isLogin, setIsLogin] = useState(true);//if not login, then it is sign up
     return (
@@ -86,10 +88,9 @@ export default function LoginPage() {
                                 action ={async (data)=>{
                                     const password = data.get("password") as string;
                                     const email = data.get("email") as string; 
-                                    const error = isLogin?await login(email, password): await signUp(email, password);
-                                    setError(error?.message?error?.message:"success");
-                                    console.log(await getUser());
-                                   
+                                    const userProcessError = isLogin?await login(email, password): await signUp(email, password);
+                                    setError(userProcessError?.message?userProcessError?.message:"success");
+                                    router.push("/eventcreator");
                                 }}
                                 className="space-y-5"
                             >
@@ -129,7 +130,7 @@ export default function LoginPage() {
                             </form>
 
                             <div className="mt-6 flex items-center justify-between text-sm text-foreground/70">
-                                <span>Try email: duck123@gmail.com, password:freak</span>
+                                <span>Try email: duck123@gmail.com, password:freakfreak</span>
                                 <Link href="/" className="font-heading text-main hover:underline">
                                     Back home
                                 </Link>
