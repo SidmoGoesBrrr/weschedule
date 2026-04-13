@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 import { getUser } from "./lib/serverUserUtil";
-import { redirect } from "next/dist/server/api-utils";
 export async function middleware(request:NextRequest){
     const user = await getUser();
     if(user.error != null){
