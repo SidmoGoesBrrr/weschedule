@@ -9,10 +9,8 @@ import { create } from "domain";
 let serverClient;
 
 function getSupabaseVariables(){
-    // const url:string|undefined = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    // const anon_key:string|undefined = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
-    const url = "https://yxgxbbigeiotgmfztxnx.supabase.co"; //temp
-    const anon_key = "sb_publishable_alCneJXAQDOSTmWQQlztow_aT4rgBae"; //temp
+    const url = "https://yxgxbbigeiotgmfztxnx.supabase.co";
+    const anon_key = "sb_publishable_alCneJXAQDOSTmWQQlztow_aT4rgBae";
 
     if(url == undefined || anon_key == undefined){
         throw new Error("no environmental variable NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY");
@@ -57,11 +55,11 @@ async function verify() {
 export async function createEvent(title : string, description : string, location : string, timeslots: [string]) {
     try {
         // auth user
-        console.log('verifying!');
+        // console.log('verifying!');
         const { user, authError } = await verify();
-        console.log('have user!');
-        console.log(user)
-        console.log(authError)
+        // console.log('have user!');
+        // console.log(user)
+        // console.log(authError)
         if (authError) {
             // return { success: false, error: String(authError)}
             console.log("auth error: " + String(authError)); //temp
@@ -76,7 +74,7 @@ export async function createEvent(title : string, description : string, location
         const serverClient = await getServerClient();
 
         // create event in supabase
-        console.log('creating!')
+        // console.log('creating!')
         const { data, error } = await serverClient
             .from('events')
             .insert({
@@ -87,17 +85,59 @@ export async function createEvent(title : string, description : string, location
                 timeslots: timeslots,
             })
             .select();
-        console.log('finished!')
+        // console.log('finished!')
         if (error) {
-            console.log('failed!')
+            // console.log('failed!')
             return { success: false, error: error.message };
         }
         return { success: true, data };
     }
     catch (err) {
-        console.log('got cooked!')
+        // console.log('got cooked!')
         return { success: false, error: String(err) };
     }
 }
 
-export async function deleteEvent(event_id : string /**stub */) {}
+export async function deleteEvent(event_id : string) {
+    try {
+        // auth user
+        const { user, authError } = await verify();
+        if (authError) {
+            // return { success: false, error: String(authError)}
+            console.log("auth error: " + String(authError)); //temp
+            user.id = "bonk";
+        }
+        if (!user) {
+            // return { success: false, error: "Could not authenticate user." };
+            console.log("no user"); //temp
+            user.id = "bonk";
+        }
+        // get supabase client
+        const serverClient = await getServerClient();
+
+        // delete event
+        const deleteEventResponse = await serverClient
+            .from('events')
+            .delete()
+            .eq('id', event_id);
+        
+        if (deleteEventResponse.error) {
+            return { success: false, error: deleteEventResponse.error.message }
+        }
+        // delete availabilities associated with event
+        const deleteAvasResponse = await serverClient
+            .from('availabilities')
+            .delete()
+            .eq('event_id', event_id);
+        
+        if (deleteAvasResponse.error) {
+            return { success: false, error: deleteAvasResponse.error.message }
+        }
+
+        return { success: true };
+    }
+    catch (err) {
+        // console.log('got cooked!')
+        return { success: false, error: String(err) };
+    }
+}
