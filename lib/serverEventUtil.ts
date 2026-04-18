@@ -2,11 +2,8 @@
 import { getUser } from './serverUserUtil';
 import {createServerClient} from "@supabase/ssr";
 import { cookies} from "next/headers";
-import { CookieMethodsServer } from "@supabase/ssr";
-import { GetAllCookies } from "@supabase/ssr";
-import { create } from "domain";
 
-let serverClient;
+let serverClient: any = null;
 
 function getSupabaseVariables(){
     const url:string|undefined = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -61,14 +58,10 @@ export async function createEvent(title : string, description : string, location
         // console.log(user)
         // console.log(authError)
         if (authError) {
-            // return { success: false, error: String(authError)}
-            console.log("auth error: " + String(authError)); //temp
-            user.id = "bonk";
+            return { success: false, error: String(authError)}
         }
         if (!user) {
-            // return { success: false, error: "Could not authenticate user." };
-            console.log("no user"); //temp
-            user.id = "bonk";
+            return { success: false, error: "Could not authenticate user." };
         }
         // get supabase client
         const serverClient = await getServerClient();
@@ -103,14 +96,10 @@ export async function deleteEvent(event_id : string) {
         // auth user
         const { user, authError } = await verify();
         if (authError) {
-            // return { success: false, error: String(authError)}
-            console.log("auth error: " + String(authError)); //temp
-            user.id = "bonk";
+            return { success: false, error: String(authError)}
         }
         if (!user) {
-            // return { success: false, error: "Could not authenticate user." };
-            console.log("no user"); //temp
-            user.id = "bonk";
+            return { success: false, error: "Could not authenticate user." };
         }
         // get supabase client
         const serverClient = await getServerClient();
