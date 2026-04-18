@@ -52,7 +52,7 @@ async function verify() {
     return { user, authError };
 }
 
-export async function createEvent(title : string, description : string, location : string, timeslots: [string]) {
+export async function createEvent(title : string, description : string, location : string, timeslots: string[]) {
     try {
         // auth user
         // console.log('verifying!');
