@@ -5,8 +5,11 @@ import { CookieMethodsServer } from "@supabase/ssr";
 import { GetAllCookies } from "@supabase/ssr";
 import { create } from "domain";
 function getSupabaseVariables(){
-    const url:string|undefined = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const anon_key:string|undefined = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+    // const url:string|undefined = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    // const anon_key:string|undefined = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+    const url = "https://yxgxbbigeiotgmfztxnx.supabase.co"; //temp
+    const anon_key = "sb_publishable_alCneJXAQDOSTmWQQlztow_aT4rgBae"; //temp
+
     if(url == undefined || anon_key == undefined){
         throw new Error("no environmental variable NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY");
     }else{

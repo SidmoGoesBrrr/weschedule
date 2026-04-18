@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { useForm, useFieldArray } from "react-hook-form"
 import { useRouter } from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod"
+import { createEvent } from '@/lib/serverEventUtil';
 
 import { toast } from "sonner";
 
@@ -159,8 +160,10 @@ export function EventCreatorForm() {
         async function asyncSubmit() {
             // values to send: title, desc, location, timeslots
             
-            let response = { success: true }; //stub
-            // let response = await <send request here>
+            
+            // let response = { success: true }; //stub
+            let timeslotStrings = values.timeslots.map(timeslot => (timeslot.date + ";" + timeslot.start + ";" + timeslot.end));
+            let response = await createEvent(values.title, values.description, values.location, timeslotStrings);
 
             // possible responses
             // warning: event timeslots overlap w/ existing reserved timeslots 
@@ -209,6 +212,7 @@ export function EventCreatorForm() {
             }
             else {
                 toast.error("Uh oh!"); //stub
+                console.log(response.error);
             }
         }
         asyncSubmit();
