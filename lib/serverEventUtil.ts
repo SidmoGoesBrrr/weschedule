@@ -84,8 +84,6 @@ export async function createEvent(title : string, description : string, location
             return { success: false, error: error.message };
         }
 
-        // //debug
-        // await test();
 
         return { success: true, data };
     }
@@ -108,33 +106,14 @@ export async function deleteEvent(event_id : string) {
         // get supabase client
         const serverClient = await getServerClient();
 
-        // verify if event created by owner
-        const { event } = await getEventById(event_id);
-        if (!event) {
-            return { success: false, error: "Event does not exist." };
-        }
-        // console.log('user id ' + user.id + ' vs event_creator id ' + event.event_creator);
-        if (event.event_creator != user.id) {
-            return { success: false, error: "User did not create this event." };
-        }
-
-        // delete event
         const deleteEventResponse = await serverClient
             .from('events')
             .delete()
-            .eq('id', event_id);
+            .eq('id', event_id)
+            .eq('event_creator', user.id);
         
         if (deleteEventResponse.error) {
             return { success: false, error: deleteEventResponse.error.message }
-        }
-        // delete availabilities associated with event
-        const deleteAvasResponse = await serverClient
-            .from('availabilities')
-            .delete()
-            .eq('event_id', event_id);
-        
-        if (deleteAvasResponse.error) {
-            return { success: false, error: deleteAvasResponse.error.message }
         }
 
         return { success: true };
@@ -166,14 +145,6 @@ export async function getEventById(event_id : string) {
         // console.log('got cooked!')
         return { success: false, error: String(err) };
     }
-}
-
-//debug
-async function test() {
-    // const response = await getEvents("a", 'a', 'behind you');
-    const response = await deleteEvent('2611d8f9-0d81-45c5-9b6b-0ff7e50081e8');
-    // const response = await getEventById('110db500-044b-4676-8e78-39db3309e243');
-    console.log(response);
 }
 
 export async function getEvents(title : string, description : string, location : string) {
