@@ -108,6 +108,16 @@ export async function deleteEvent(event_id : string) {
         // get supabase client
         const serverClient = await getServerClient();
 
+        // verify if event created by owner
+        const { event } = await getEventById(event_id);
+        if (!event) {
+            return { success: false, error: "Event does not exist." };
+        }
+        // console.log('user id ' + user.id + ' vs event_creator id ' + event.event_creator);
+        if (event.event_creator != user.id) {
+            return { success: false, error: "User did not create this event." };
+        }
+
         // delete event
         const deleteEventResponse = await serverClient
             .from('events')
@@ -143,11 +153,13 @@ export async function getEventById(event_id : string) {
         const response = await serverClient
             .from('events')
             .select()
-            .eq('id', event_id);
+            .eq('id', event_id)
+            .maybeSingle();
         
         if (response.error) {
             return { success: false, error: response.error.message }
         }
+        // console.log(response);
         return { success: true, event: response.data };
     }
     catch (err) {
@@ -159,7 +171,7 @@ export async function getEventById(event_id : string) {
 //debug
 async function test() {
     // const response = await getEvents("a", 'a', 'behind you');
-    const response = await deleteEvent('110db500-044b-4676-8e78-39db3309e243');
+    const response = await deleteEvent('2611d8f9-0d81-45c5-9b6b-0ff7e50081e8');
     // const response = await getEventById('110db500-044b-4676-8e78-39db3309e243');
     console.log(response);
 }
