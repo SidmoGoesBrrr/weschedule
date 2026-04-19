@@ -83,6 +83,10 @@ export async function createEvent(title : string, description : string, location
             // console.log('failed!')
             return { success: false, error: error.message };
         }
+
+        // //debug
+        // await test();
+
         return { success: true, data };
     }
     catch (err) {
@@ -124,6 +128,58 @@ export async function deleteEvent(event_id : string) {
         }
 
         return { success: true };
+    }
+    catch (err) {
+        // console.log('got cooked!')
+        return { success: false, error: String(err) };
+    }
+}
+
+// do not need to be logged in to get event information
+export async function getEventById(event_id : string) {
+    try {
+        // get supabase client
+        const serverClient = await getServerClient();
+        const response = await serverClient
+            .from('events')
+            .select()
+            .eq('id', event_id);
+        
+        if (response.error) {
+            return { success: false, error: response.error.message }
+        }
+        return { success: true, event: response.data };
+    }
+    catch (err) {
+        // console.log('got cooked!')
+        return { success: false, error: String(err) };
+    }
+}
+
+//debug
+async function test() {
+    // const response = await getEvents("a", 'a', 'behind you');
+    const response = await deleteEvent('110db500-044b-4676-8e78-39db3309e243');
+    // const response = await getEventById('110db500-044b-4676-8e78-39db3309e243');
+    console.log(response);
+}
+
+export async function getEvents(title : string, description : string, location : string) {
+    try {
+        // get supabase client
+        const serverClient = await getServerClient();
+        const response = await serverClient
+            .from('events')
+            .select()
+            .ilike('title', '%' + title + '%')
+            .ilike('description', '%' + description + '%')
+            .ilike('location', '%' + location + '%');
+        
+        if (response.error) {
+            return { success: false, error: response.error.message }
+        }
+        return { success: true, events: response.data };
+
     }
     catch (err) {
         // console.log('got cooked!')
