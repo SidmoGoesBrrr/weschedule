@@ -3,8 +3,6 @@ import { getUser } from './serverUserUtil';
 import {createServerClient} from "@supabase/ssr";
 import { cookies} from "next/headers";
 
-let serverClient: any = null;
-
 function getSupabaseVariables(){
     const url:string|undefined = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const anon_key:string|undefined = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
@@ -37,13 +35,6 @@ async function makeServerClient(){
     ))
 }
 
-async function getServerClient() {
-    if (!serverClient) {
-        serverClient = await makeServerClient();
-    }
-    return serverClient;
-}
-
 async function verify() {
     const { data: { user }, error: authError } = await getUser();
     return { user, authError };
@@ -64,7 +55,7 @@ export async function createEvent(title : string, description : string, location
             return { success: false, error: "Could not authenticate user." };
         }
         // get supabase client
-        const serverClient = await getServerClient();
+        const serverClient = await makeServerClient();
 
         // create event in supabase
         // console.log('creating!')
@@ -104,7 +95,7 @@ export async function deleteEvent(event_id : string) {
             return { success: false, error: "Could not authenticate user." };
         }
         // get supabase client
-        const serverClient = await getServerClient();
+        const serverClient = await makeServerClient();
 
         const deleteEventResponse = await serverClient
             .from('events')
@@ -128,7 +119,7 @@ export async function deleteEvent(event_id : string) {
 export async function getEventById(event_id : string) {
     try {
         // get supabase client
-        const serverClient = await getServerClient();
+        const serverClient = await makeServerClient();
         const response = await serverClient
             .from('events')
             .select()
@@ -150,7 +141,7 @@ export async function getEventById(event_id : string) {
 export async function getEvents(title : string, description : string, location : string) {
     try {
         // get supabase client
-        const serverClient = await getServerClient();
+        const serverClient = await makeServerClient();
         const response = await serverClient
             .from('events')
             .select()
