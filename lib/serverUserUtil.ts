@@ -7,6 +7,7 @@ import { create } from "domain";
 function getSupabaseVariables(){
     const url:string|undefined = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const anon_key:string|undefined = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+
     if(url == undefined || anon_key == undefined){
         throw new Error("no environmental variable NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY");
     }else{

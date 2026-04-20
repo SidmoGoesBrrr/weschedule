@@ -4,7 +4,9 @@ import Link from "next/link";
 import { Plus, Trash2 } from 'lucide-react';
 import { z } from 'zod';
 import { useForm, useFieldArray } from "react-hook-form"
+import { useRouter } from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod"
+import { createEvent } from '@/lib/serverEventUtil';
 
 import { toast } from "sonner";
 
@@ -91,6 +93,8 @@ export function EventCreatorForm() {
     const sameTimesForAll = form.watch("sameTimesForAll");
     const dates = watchedDates.map((d) => new Date(d + "T00:00:00")); // parse as local
 
+    const router = useRouter();
+
     const syncTimeslotsForAllDates = (baseSlots: { start: string; end: string }[]) => {
         const isoDates = getValues("dates") ?? [];
         if (!isoDates.length) {
@@ -153,12 +157,28 @@ export function EventCreatorForm() {
     function onSubmit(values: z.infer<typeof formSchema>) {
         // only called when schema is valid
         console.log(values);
-        
-        // note for db integration: ensure this is only called after
-        // a success response from db
-        toast.success("Event successfully created!");
+        async function asyncSubmit() {
+            // values to send: title, desc, location, timeslots
+            
+            
+            // let response = { success: true }; //stub
+            let timeslotStrings = values.timeslots.map(timeslot => (timeslot.date + ";" + timeslot.start + ";" + timeslot.end));
+            let response = await createEvent(values.title, values.description, values.location, timeslotStrings);
 
-        // send to some other page?
+            // possible responses
+            // warning: event timeslots overlap w/ existing reserved timeslots 
+            // failure: length restrictions validated on title, desc, and/or location
+            if (response.success) {
+                toast.success("Event successfully created!");
+                // send to homepage
+                router.push('/');
+            }
+            else {
+                toast.error("Uh oh!"); //stub
+                console.log(response.error);
+            }
+        }
+        asyncSubmit();
     }
 
     function onError(errors: Object) {
