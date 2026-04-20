@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/sonner"
 
 import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,6 +13,12 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const newYork = localFont({
+  src: "../public/fonts/new-york/selawik.semilight.ttf",
+  display: "swap",
+  variable: "--font-new-york",
 });
 
 export const metadata: Metadata = {
@@ -27,11 +34,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${newYork.className} ${newYork.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
-        <Toaster />
 
+        <Toaster />
+        
       </body>
     </html>
   );

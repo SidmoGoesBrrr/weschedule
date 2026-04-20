@@ -51,17 +51,27 @@ allTimes = allTimes.flatMap((time: any) => {
 });
 // console.log(times);
 
+function localDateIso(d: Date): string {
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, "0")
+    const day = String(d.getDate()).padStart(2, "0")
+    return `${y}-${m}-${day}`
+}
+
 export function TimeComboBox(props: any) {
     const {
         earliest,
         latest,
-        updateFormCallback
+        updateFormCallback,
+        value: controlledValue,
+        slotDate,
     } = props;
     const [open, setOpen] = useState(false)
-    const [value, setValue] = useState('');
+    const [internalValue, setInternalValue] = useState('');
+    const value = controlledValue !== undefined ? controlledValue : internalValue;
     let update = (newValue: any) => {
         updateFormCallback(newValue);
-        setValue(newValue);
+        if (controlledValue === undefined) setInternalValue(newValue);
     };
     let earliestIndex = -1;
     let latestIndex = allTimes.length;
@@ -74,7 +84,26 @@ export function TimeComboBox(props: any) {
         }
     }
     
-    const times = allTimes.slice(earliestIndex + 1, latestIndex);
+    let times = allTimes.slice(earliestIndex + 1, latestIndex)
+
+    if (slotDate && slotDate === localDateIso(new Date())) {
+        const now = Date.now()
+        times = times.filter(
+            (time: { value: string }) =>
+                new Date(`${slotDate}T${time.value}:00`).getTime() > now,
+        )
+    }
+
+    useEffect(() => {
+        if (!value) return
+        const isValidSelection = times.some((time: { value: string }) => time.value === value)
+        if (!isValidSelection) {
+            updateFormCallback("")
+            if (controlledValue === undefined) setInternalValue("")
+        }
+    }, [value, times, controlledValue, updateFormCallback])
+
+    const selectedTimeLabel = times.find((time: { value: string }) => time.value === value)?.label
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -85,9 +114,7 @@ export function TimeComboBox(props: any) {
                     aria-expanded={open}
                     className="w-full justify-between md:max-w-[200px]"
                 >
-                    {value
-                        ? times.find((time: any) => time.value === value)?.label
-                        : "Select time..."}
+                    {selectedTimeLabel ?? "Select time..."}
                     <ChevronsUpDown />
                 </Button>
             </PopoverTrigger>
