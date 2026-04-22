@@ -66,7 +66,7 @@ const formSchema = z.object({
     title: z.string().min(1, errorMsgs.NO_TITLE).max(50, errorMsgs.TITLE_TOO_LONG),
     description: z.string().min(0).max(1000, errorMsgs.DESC_TOO_LONG),
     location: z.string().min(0).max(200, errorMsgs.LOCATION_TOO_LONG),
-    dates: z.array(z.string().date()).min(1, errorMsgs.NO_DATES),
+    dates: z.array(z.iso.date()).min(1, errorMsgs.NO_DATES),
     sameTimesForAll: z.boolean(),
     timeslots: z.array(timeslotSchema).min(1, 'Add at least one timeslot'),
 });
