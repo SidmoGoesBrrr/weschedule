@@ -1,6 +1,8 @@
 
+"use client";
+
 import { z } from 'zod';
-import { useForm } from "react-hook-form"
+import { useForm, FieldErrors } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
 import { Button } from "@/components/ui/button";
@@ -45,7 +47,7 @@ export function EventSearch(props: any) {
         props.search(values.dates);
     }
 
-    function onError(errors: Object) { }
+    function onError(errors: FieldErrors) { }
 
     return (
         <Form {...form}>
