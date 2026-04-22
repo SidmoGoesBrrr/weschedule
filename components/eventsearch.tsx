@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { DateSelector } from '@/components/dateselector';
 
 const formSchema = z.object({
-    dates: z.array(z.iso.date()),
+    dates: z.array(z.string().date()),
 })
 
 export function EventSearch(props: { search: (dates: string[]) => void }) {
