@@ -4,19 +4,10 @@ import Link from 'next/link'
 
 import { useState } from 'react';
 
-import { getEvents } from '@/lib/serverEventUtil';
+import { Event, getEvents } from '@/lib/serverEventUtil';
 
 import { EventSearch } from '@/components/eventsearch';
 import { EventList } from '@/components/eventlist';
-
-export type Event = {
-    title: string;
-    description: string;
-    location: string;
-    dates: string;
-    timeslots: string;
-    link: string;
-}
 
 export default function ViewEvents() {
     const [events, setEvents] = useState<Event[]>([]);

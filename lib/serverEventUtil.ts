@@ -3,6 +3,16 @@ import { getUser } from './serverUserUtil';
 import {createServerClient} from "@supabase/ssr";
 import { cookies} from "next/headers";
 
+export type Event = {
+    id: string;
+    title: string;
+    description: string;
+    location: string;
+    dates: string[];
+    timeslots: string[];
+    link: string;
+}
+
 function getSupabaseVariables(){
     const url:string|undefined = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const anon_key:string|undefined = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
