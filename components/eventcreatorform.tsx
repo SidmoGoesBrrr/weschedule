@@ -163,7 +163,7 @@ export function EventCreatorForm() {
             
             // let response = { success: true }; //stub
             let timeslotStrings = values.timeslots.map(timeslot => (timeslot.date + ";" + timeslot.start + ";" + timeslot.end));
-            let response = await createEvent(values.title, values.description, values.location, timeslotStrings);
+            let response = await createEvent(values.title, values.description, values.location, values.dates, timeslotStrings);
 
             // possible responses
             // warning: event timeslots overlap w/ existing reserved timeslots 
