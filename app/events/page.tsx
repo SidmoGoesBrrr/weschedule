@@ -2,13 +2,41 @@
 
 import Link from 'next/link'
 
+import { useState } from 'react';
+
+import { getEvents } from '@/lib/serverEventUtil';
+
 import { EventSearch } from '@/components/eventsearch';
+import { EventList } from '@/components/eventlist';
+
+export type Event = {
+    title: string;
+    description: string;
+    location: string;
+    dates: string;
+    timeslots: string;
+    link: string;
+}
 
 export default function ViewEvents() {
+    const [events, setEvents] = useState<Event[]>([]);
+
     const search = (dates: string[]) => {
-        console.log(dates);
+        async function asyncSearch() {
+            let response = await getEvents("", "", "", dates);
+            let userEvents = response.events ? response.events.map((event) => ({
+                ...event,
+                link: "", //stub
+            })) : [];
+            // let corqEvents = []; //stub
+            // let sortedEvents = userEvents + corqEvents;
+            // sortedEvents.sort();
+            setEvents(userEvents);
+            console.log(userEvents);
+        }
+        asyncSearch();
     }
-    
+
     return (
         <div className="w-full min-h-screen flex flex-col">
             <header className="w-full border-b-2 border-border bg-background sticky top-0 z-50">
@@ -18,9 +46,14 @@ export default function ViewEvents() {
                     </Link>
                 </div>
             </header>
-            <div className="pt-15 pb-15 flex flex-col items-center flex-1">
-                <div className="w-full max-w-2xl">
-                    <EventSearch search={search} />
+            <div className="pt-15 pb-15 flex flex-row items-center flex-1">
+                <div className="pt-15 pb-15 flex flex-col items-center flex-1">
+                    <div className="w-full max-w-2xl">
+                        <EventSearch search={search} />
+                    </div>
+                </div>
+                <div>
+                    <EventList events={events} />
                 </div>
             </div>
         </div>
