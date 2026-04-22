@@ -22,7 +22,7 @@ const formSchema = z.object({
     dates: z.array(z.iso.date()),
 })
 
-export function EventSearch(props: any) {
+export function EventSearch(props: { search: (dates: string[]) => void }) {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
