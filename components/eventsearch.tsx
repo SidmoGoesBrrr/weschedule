@@ -51,10 +51,9 @@ export function EventSearch(props: { search: (dates: string[]) => void }) {
 
     return (
         <Form {...form}>
-            {/* <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-8"> */}
-            <form onSubmit={form.handleSubmit(onSubmit, onError)}>
-                {/* <div className="w-full max-w-3xl rounded-xl border border-[var(--border)] bg-[var(--secondary-background)] p-6 shadow-[var(--shadow)]">
-                    <div className="flex flex-row flex-wrap justify-center items-start gap-8 min-h-0"> */}
+            <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-8">
+                <div className="w-full max-w-3xl rounded-xl border border-[var(--border)] bg-[var(--secondary-background)] p-6 shadow-[var(--shadow)]">
+                    <div className="flex flex-row flex-wrap justify-center items-start gap-8 min-h-0">
                         <FormField
                             control={form.control}
                             name="dates"
@@ -68,11 +67,11 @@ export function EventSearch(props: { search: (dates: string[]) => void }) {
                                 </FormItem>
                             )}
                         />
-                    {/* </div>
-                    <div className="flex justify-center gap-4"> */}
+                    </div>
+                    <div className="flex justify-center gap-4">
                         <Button type="submit">Search</Button>
-                    {/* </div>
-                </div> */}
+                    </div>
+                </div>
             </form>
         </Form>
     )
