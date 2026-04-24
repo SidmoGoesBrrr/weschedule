@@ -7,6 +7,14 @@ import { zodResolver } from "@hookform/resolvers/zod"
 
 import { Button } from "@/components/ui/button";
 import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card"
+import {
     Form,
     FormControl,
     FormField,
@@ -50,29 +58,37 @@ export function EventSearch(props: { search: (dates: string[]) => void }) {
     function onError(errors: FieldErrors) { }
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-8">
-                <div className="w-full max-w-3xl rounded-xl border border-[var(--border)] bg-[var(--secondary-background)] p-6 shadow-[var(--shadow)]">
-                    <div className="flex flex-row flex-wrap justify-center items-start gap-8 min-h-0">
-                        <FormField
-                            control={form.control}
-                            name="dates"
-                            render={() => (
-                                <FormItem>
-                                    <FormLabel>Select Dates</FormLabel>
-                                    <FormControl>
-                                        <DateSelector dates={dates} updateFormCallback={updateDates} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-                    <div className="flex justify-center gap-4">
-                        <Button type="submit">Search</Button>
-                    </div>
-                </div>
-            </form>
-        </Form>
+        <Card className="min-h-[min(75vh,100rem)] bg-[var(--secondary-background)] p-6">
+            <CardHeader>
+                <CardTitle>Event Search</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-8 max-w-[min(30vw,100rem)]">
+                        {/* <div className="min-h-[min(75vh,100rem)] rounded-xl border border-[var(--border)] bg-[var(--secondary-background)] p-6 shadow-[var(--shadow)]"> */}
+                            <div className="justify-end flex flex-row flex-wrap justify-center items-start gap-8 min-h-0">
+                                <FormField
+                                    control={form.control}
+                                    name="dates"
+                                    render={() => (
+                                        <FormItem>
+                                            <FormLabel>Select Dates</FormLabel>
+                                            <FormControl>
+                                                <DateSelector dates={dates} updateFormCallback={updateDates} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                            <div className="flex justify-end gap-4">
+                                <Button type="submit">Search</Button>
+                            </div>
+                        {/* </div> */}
+                    </form>
+                </Form>
+
+            </CardContent>
+        </Card>
     )
 }

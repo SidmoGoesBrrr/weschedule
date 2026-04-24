@@ -15,10 +15,13 @@ export default function ViewEvents() {
     const search = (dates: string[]) => {
         async function asyncSearch() {
             let response = await getEvents("", "", "", dates);
-            let userEvents = response.events ? response.events.map((event) => ({
-                ...event,
-                link: "", //stub
-            })) : [];
+            let userEvents = response.events ? response.events.map((event) => {
+                const link = event.link ? event.link : `/availability?event_id=${event.id}`;
+                return {
+                    ...event,
+                    link,
+                }
+            }) : [];
             // let corqEvents = []; //stub
             // let sortedEvents = userEvents + corqEvents;
             // sortedEvents.sort();
@@ -37,13 +40,13 @@ export default function ViewEvents() {
                     </Link>
                 </div>
             </header>
-            <div className="pt-15 pb-15 flex flex-row items-center flex-1">
-                <div className="pt-15 pb-15 flex flex-col items-center flex-1">
-                    <div className="w-full max-w-2xl">
+            <div className="py-4 px-4 flex flex-row items-center gap-4 flex-1">
+                <div className="h-auto py-8 flex flex-col items-center flex-1">
+                    <div className="w-full max-w-2xl h-full">
                         <EventSearch search={search} />
                     </div>
                 </div>
-                <div>
+                <div className="w-full h-full px-4">
                     <EventList events={events} />
                 </div>
             </div>
