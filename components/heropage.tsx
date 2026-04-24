@@ -15,12 +15,12 @@ export default function HeroPage() {
       {/* Header */}
       <header className="w-full border-b-2 border-border bg-white sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-heading text-black">
+          <Link href="/" className="text-2xl font-heading text-main">
             WeSchedule
           </Link>
           <nav className="flex items-center gap-4">
             <Link href="/create-event">
-              <Button variant="neutral" size="sm" className="bg-[#008AE5] text-black">
+              <Button variant="neutral" size="sm" className="bg-[#008AE5] text-black cursor-pointer">
                 Create Event
               </Button>
             </Link>
@@ -40,11 +40,10 @@ export default function HeroPage() {
             </h1>
 
             <p className="text-xl md:text-2xl text-foreground/80 max-w-2xl mx-auto mb-8">
-              Schedule group meetings effortlessly with smart time suggestions, 
-              calendar sync, and the Corq app.
+              Schedule group meetings effortlessly with smart time suggestions and the Corq app.
             </p>
             <Link href="/create-event">
-              <Button size="lg" className="text-lg px-8 py-6">
+              <Button size="lg" className="text-lg px-8 py-6 cursor-pointer">
                 Create Event
               </Button>
             </Link>
