@@ -11,11 +11,11 @@ import { Play } from "lucide-react"
  */
 export default function HeroPage() {
   return (
-    <div className="w-full">
+    <div className="w-full" style={{ fontFamily: "var(--font-inter)" }}>
       {/* Header */}
       <header className="w-full border-b-2 border-border bg-white sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-heading text-black" border-2 border-border>
+          <Link href="/" className="text-2xl font-heading text-black">
             WeSchedule
           </Link>
           <nav className="flex items-center gap-4">
@@ -33,7 +33,7 @@ export default function HeroPage() {
         <div className="max-w-6xl w-full mx-auto">
           {/* Main Message */}
           <div className="text-center mb-12">
-            <h1 className="text-3xl md:text-5xl font-heading mb-6 leading-tight">
+            <h1 className="text-2xl md:text-3xl font-heading mb-6 leading-tight">
               meet smarter with
               <br />
               <span className="text-6xl md:text-8xl text-main mt-5 block">WeSchedule</span>
