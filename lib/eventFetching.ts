@@ -23,13 +23,17 @@ type EventResponse = {
     endsOn: string
 }
 
+type SearchResponse = {
+    value: EventResponse[]
+}
+
 const EVENT_RETURN_LIMIT: number = 10; // Change this later
 
 export async function getEvents(availability: DateRange[]): Promise<CorqEvent[]> {
     const events: CorqEvent[] = [];
 
     // Collect all promises for fetching events for each time range in availability
-    const requests: Promise<AxiosResponse>[] = [];
+    const requests: Promise<AxiosResponse<SearchResponse>>[] = [];
     availability.forEach((range: DateRange) => {
         if (!isNaN(range.start.getTime()) && !isNaN(range.end.getTime()) && range.start < range.end) { // Validate the time ranges
             const searchParams = new URLSearchParams({
@@ -40,27 +44,28 @@ export async function getEvents(availability: DateRange[]): Promise<CorqEvent[]>
                 status: "approved",
                 take: EVENT_RETURN_LIMIT.toString()
             })
-            requests.push(axios.get<AxiosResponse>(`https://stonybrook.campuslabs.com/engage/api/discovery/event/search?${searchParams.toString()}`, {timeout: 10000}));
+            requests.push(axios.get<SearchResponse>(`https://stonybrook.campuslabs.com/engage/api/discovery/event/search?${searchParams.toString()}`, {timeout: 10000}));
         }
     });
     
     // Collate the returned events
-    await Promise.all(requests).then((responses: {data: {value: EventResponse[]}}[]) => {
-        console.log(responses);
-        responses.forEach((response: {data: {value: EventResponse[]}}) => { // Iterate over the responses corresponding to the DateRanges in availability
-            response.data.value.forEach((eventData: EventResponse) => { // For each event in the response
-                if (events.length < EVENT_RETURN_LIMIT) {
-                    let event: CorqEvent = {
-                        title: eventData.name,
-                        desc: eventData.description,
-                        location: eventData.location,
-                        time: {start: new Date(eventData.startsOn), end: new Date(eventData.endsOn)},
-                        link: `https://stonybrook.campuslabs.com/engage/event/${eventData.id}`
-                    };
+    await Promise.allSettled(requests).then((responses: PromiseSettledResult<AxiosResponse<SearchResponse>>[]) => {
+        responses.forEach((response: PromiseSettledResult<AxiosResponse<SearchResponse>>) => { // Iterate over the responses corresponding to the DateRanges in availability
+            if (response.status === "fulfilled") {
+                response.value.data.value.forEach((eventData: EventResponse) => { // For each event in the response
+                    if (events.length < EVENT_RETURN_LIMIT) {
+                        const event: CorqEvent = {
+                            title: eventData.name,
+                            desc: eventData.description,
+                            location: eventData.location,
+                            time: {start: new Date(eventData.startsOn), end: new Date(eventData.endsOn)},
+                            link: `https://stonybrook.campuslabs.com/engage/event/${eventData.id}`
+                        };
 
-                    events.push(event);
-                }
-            });
+                        events.push(event);
+                    }
+                });
+            }
         })
     });
 
