@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from "react";
-import { io, Socket } from "socket.io-client";
 import { motion } from "framer-motion";
+import { io, Socket } from "socket.io-client";
 
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Input } from '@/components/ui/input'
@@ -46,6 +46,7 @@ interface DayAvailability {
 export default function AvailabilityPage() {
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
   const socketRef = useRef<Socket | null>(null);
+  const roomIdRef = useRef<string>("availability-default");
 
   const [availability, setAvailability] = useState<Record<string, DayAvailability>>(
     days.reduce((acc, day) => {
@@ -81,43 +82,94 @@ export default function AvailabilityPage() {
   };
 
   //message states thing
-  type ChatMessage = { text: string; isOutgoing: boolean };
+  type ChatMessage = { id: string; text: string; isOutgoing: boolean };
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [messageValue, setMessageValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   //message submitting
-  const handleMessageSubmit = (e: React.FormEvent) => {
+  const handleMessageSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (messageValue && socketRef.current) {
-      const text = messageValue.trim();
-      setMessages((prev) => [...prev, { text, isOutgoing: true }]);
-      socketRef.current.emit('chat message', text);
-      setMessageValue('');
+    const text = messageValue.trim();
+
+    if (!text) {
+      return;
+    }
+
+    const localId = `local-${Date.now()}`;
+    setMessages((prev) => [...prev, { id: localId, text, isOutgoing: true }]);
+    setMessageValue('');
+
+    socketRef.current?.emit("chat message", text);
+
+    try {
+      const response = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text,
+          roomId: roomIdRef.current,
+        }),
+      });
+
+      if (!response.ok) {
+        console.warn("Message was sent live but could not be saved.");
+      }
+    } catch (error) {
+      console.warn("Message was sent live but could not be persisted.", error);
     }
   };
   
-  //socket.io nonsense
+  // Load stored messages once.
   useEffect(() => {
-    socketRef.current = io('http://localhost:4000');
-    
-    socketRef.current.on('connect', () => {
-      console.log('Connected to server');
-    });
-  
-    socketRef.current.on('disconnect', () => {
-      console.log('Disconnected from server');
-    });
-  
-    // Listen for incoming chat messages (broadcast only, so we don't get our own)
-    socketRef.current.on('chat message', (msg: string) => {
-      setMessages((prev) => [...prev, { text: msg, isOutgoing: false }]);
-    });
-  
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      roomIdRef.current = url.searchParams.get("room")?.trim() || url.pathname;
+    }
+
+    const loadMessages = async () => {
+      try {
+        const params = new URLSearchParams({ roomId: roomIdRef.current });
+        const response = await fetch(`/api/messages?${params.toString()}`);
+        if (!response.ok) {
+          console.warn("Messages are temporarily unavailable.");
+          return;
+        }
+
+        const payload = await response.json();
+        const loadedMessages = Array.isArray(payload?.messages)
+          ? payload.messages.map((msg: { id: string; content: string }) => ({
+              id: msg.id,
+              text: msg.content,
+              isOutgoing: false,
+            }))
+          : [];
+
+        setMessages(loadedMessages);
+      } catch (error) {
+        console.warn("Unable to load messages right now.", error);
       }
+    };
+
+    void loadMessages();
+  }, []);
+
+  // Socket channel for live relay between users.
+  useEffect(() => {
+    socketRef.current = io("http://localhost:4000", {
+      query: {
+        roomId: roomIdRef.current,
+      },
+    });
+
+    socketRef.current.on("chat message", (payload: { id?: string; text: string } | string) => {
+      const text = typeof payload === "string" ? payload : payload.text;
+      const id = typeof payload === "string" ? `remote-${Date.now()}` : payload.id ?? `remote-${Date.now()}`;
+      setMessages((prev) => [...prev, { id, text, isOutgoing: false }]);
+    });
+
+    return () => {
+      socketRef.current?.disconnect();
     };
   }, []);
 
@@ -209,7 +261,6 @@ export default function AvailabilityPage() {
                       </div>
                     </CardContent>
                   </Card>
-
                 </motion.div>
               </ResizablePanel>
               <ResizableHandle />
@@ -219,9 +270,9 @@ export default function AvailabilityPage() {
                   <ScrollArea className="rounded-base min-w-0 flex-1 mt-5 mb-4 items-center text-main-foreground border-2 border-border bg-white p-4 shadow-shadow">
                   <div className="min-w-0 w-full overflow-x-hidden">
                   <ul id="messages" className="min-w-0 w-full space-y-2 mb-4 px-2 py-1">
-                    {messages.map((msg, index) => (
+                    {messages.map((msg) => (
                       <li
-                        key={index}
+                        key={msg.id}
                         className={`border-2 border-border w-full max-w-full break-words [overflow-wrap:anywhere] whitespace-pre-wrap p-2 rounded p-4 shadow-shadow ${
                           msg.isOutgoing ? 'bg-sky-200 border-sky-400' : 'bg-slate-100 border-slate-300'
                         }`}

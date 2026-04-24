@@ -21,15 +21,26 @@ app.get('/', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-  console.log('a user connected');
+  const roomValue = socket.handshake.query.roomId;
+  const roomId = typeof roomValue === "string" && roomValue.trim() ? roomValue : "availability-default";
+  socket.join(roomId);
+  console.log(`a user connected to room: ${roomId}`);
   
-  socket.on('chat message', (msg) => {
-    socket.broadcast.emit('chat message', msg);
-    console.log('message: ' + msg);
+  socket.on('chat message', (msg: string) => {
+    const text = msg.trim();
+    if (!text) {
+      return;
+    }
+
+    socket.to(roomId).emit('chat message', {
+      id: crypto.randomUUID(),
+      text,
+    });
+    console.log(`message in ${roomId}: ${text}`);
   });
 
   socket.on('disconnect', () => {
-    console.log('a user disconnected');
+    console.log(`a user disconnected from room: ${roomId}`);
   });
 });
 
