@@ -26,8 +26,15 @@ io.on('connection', (socket) => {
   socket.join(roomId);
   console.log(`a user connected to room: ${roomId}`);
   
-  socket.on('chat message', (msg: string) => {
-    const text = msg.trim();
+  socket.on('chat message', (msg: string | { text?: string; senderName?: string }) => {
+    const text = typeof msg === "string" ? msg.trim() : (msg.text ?? "").trim();
+    const senderName =
+      typeof msg === "string"
+        ? "Unknown User"
+        : typeof msg.senderName === "string" && msg.senderName.trim()
+          ? msg.senderName.trim()
+          : "Unknown User";
+
     if (!text) {
       return;
     }
@@ -35,8 +42,9 @@ io.on('connection', (socket) => {
     socket.to(roomId).emit('chat message', {
       id: crypto.randomUUID(),
       text,
+      senderName,
     });
-    console.log(`message in ${roomId}: ${text}`);
+    console.log(`message in ${roomId} from ${senderName}: ${text}`);
   });
 
   socket.on('disconnect', () => {

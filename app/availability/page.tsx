@@ -47,6 +47,8 @@ export default function AvailabilityPage() {
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
   const socketRef = useRef<Socket | null>(null);
   const roomIdRef = useRef<string>("availability-default");
+  const currentUserNameRef = useRef<string>("Unknown User");
+  const currentUserEmailRef = useRef<string>("");
 
   const [availability, setAvailability] = useState<Record<string, DayAvailability>>(
     days.reduce((acc, day) => {
@@ -82,10 +84,29 @@ export default function AvailabilityPage() {
   };
 
   //message states thing
-  type ChatMessage = { id: string; text: string; isOutgoing: boolean };
+  type ChatMessage = { id: string; text: string; isOutgoing: boolean; senderName: string };
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [messageValue, setMessageValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const loadIdentityFromCookie = async () => {
+    const meResponse = await fetch("/api/auth/me");
+    if (!meResponse.ok) {
+      return false;
+    }
+
+    const mePayload = await meResponse.json();
+    const email = typeof mePayload?.user?.email === "string" ? mePayload.user.email.trim() : "";
+    const name = typeof mePayload?.user?.name === "string" ? mePayload.user.name.trim() : "";
+
+    if (!email || !name) {
+      return false;
+    }
+
+    currentUserEmailRef.current = email;
+    currentUserNameRef.current = name;
+    return true;
+  };
 
   //message submitting
   const handleMessageSubmit = async (e: React.FormEvent) => {
@@ -96,11 +117,22 @@ export default function AvailabilityPage() {
       return;
     }
 
+    if (!currentUserEmailRef.current || !currentUserNameRef.current || currentUserNameRef.current === "Unknown User") {
+      const identityReady = await loadIdentityFromCookie();
+      if (!identityReady) {
+        console.warn("Unable to resolve logged-in user from cookies.");
+        return;
+      }
+    }
+
     const localId = `local-${Date.now()}`;
-    setMessages((prev) => [...prev, { id: localId, text, isOutgoing: true }]);
+    setMessages((prev) => [...prev, { id: localId, text, isOutgoing: true, senderName: currentUserNameRef.current }]);
     setMessageValue('');
 
-    socketRef.current?.emit("chat message", text);
+    socketRef.current?.emit("chat message", {
+      text,
+      senderName: currentUserNameRef.current,
+    });
 
     try {
       const response = await fetch("/api/messages", {
@@ -109,6 +141,7 @@ export default function AvailabilityPage() {
         body: JSON.stringify({
           text,
           roomId: roomIdRef.current,
+          email: currentUserEmailRef.current,
         }),
       });
 
@@ -129,6 +162,8 @@ export default function AvailabilityPage() {
 
     const loadMessages = async () => {
       try {
+        await loadIdentityFromCookie();
+
         const params = new URLSearchParams({ roomId: roomIdRef.current });
         const response = await fetch(`/api/messages?${params.toString()}`);
         if (!response.ok) {
@@ -138,10 +173,11 @@ export default function AvailabilityPage() {
 
         const payload = await response.json();
         const loadedMessages = Array.isArray(payload?.messages)
-          ? payload.messages.map((msg: { id: string; content: string }) => ({
+          ? payload.messages.map((msg: { id: string; content: string; sender?: string; sender_name?: string }) => ({
               id: msg.id,
               text: msg.content,
               isOutgoing: false,
+              senderName: msg.sender ?? msg.sender_name ?? "Unknown User",
             }))
           : [];
 
@@ -162,10 +198,11 @@ export default function AvailabilityPage() {
       },
     });
 
-    socketRef.current.on("chat message", (payload: { id?: string; text: string } | string) => {
+    socketRef.current.on("chat message", (payload: { id?: string; text: string; senderName?: string } | string) => {
       const text = typeof payload === "string" ? payload : payload.text;
       const id = typeof payload === "string" ? `remote-${Date.now()}` : payload.id ?? `remote-${Date.now()}`;
-      setMessages((prev) => [...prev, { id, text, isOutgoing: false }]);
+      const senderName = typeof payload === "string" ? "Unknown User" : payload.senderName ?? "Unknown User";
+      setMessages((prev) => [...prev, { id, text, isOutgoing: false, senderName }]);
     });
 
     return () => {
@@ -277,6 +314,7 @@ export default function AvailabilityPage() {
                           msg.isOutgoing ? 'bg-sky-200 border-sky-400' : 'bg-slate-100 border-slate-300'
                         }`}
                       >
+                        <p className="text-xs font-semibold mb-1 opacity-80">{msg.isOutgoing ? "You" : msg.senderName}</p>
                         {msg.text}
                       </li>
                     ))}
