@@ -36,7 +36,7 @@ const DAYS = [
 ] as const;
 type Day = (typeof DAYS)[number];
 
-type UserRecord = { userId: string; availability: Record<Day, DayAvailability> };
+type UserRecord = { userId: string; availability: Record<Day, DayAvailability>; createdAt?: string };
 
 // --- Helpers ---
 
@@ -51,7 +51,7 @@ function toHHMM(m: number): string {
 }
 
 function defaultDay(): DayAvailability {
-  return { available: true, blocks: [{ start: "09:00", end: "17:00" }] };
+  return { available: false, blocks: [] };
 }
 
 function makeDefaultAvailability(): Record<Day, DayAvailability> {
@@ -78,7 +78,6 @@ function normalizeIncoming(input: unknown): Record<Day, DayAvailability> {
           .filter((b: any) => b && typeof b.start === "string" && typeof b.end === "string")
           .map((b: any) => ({ start: b.start, end: b.end })),
       };
-      if (next[day].blocks.length === 0) next[day].blocks = [{ start: "09:00", end: "17:00" }];
     } else if (typeof d.start === "string" && typeof d.end === "string") {
       next[day] = {
         available: Boolean(d.available),
@@ -188,7 +187,7 @@ function SingleDayGrid({ day, availability, onChange, disabled = false }: Single
       ...availability,
       [day]: {
         available: next.size > 0,
-        blocks: blocks.length ? blocks : [{ start: "09:00", end: "17:00" }],
+        blocks,
       },
     });
   }
@@ -399,15 +398,34 @@ function SingleDayHeatmap({
 
 // --- Name entry screen ---
 
-function NameEntry({ onSet }: { onSet: (name: string) => void }) {
+function NameEntry({ onSet }: { onSet: (name: string, password: string) => void }) {
   const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    localStorage.setItem("ws_user_name", trimmed);
-    onSet(trimmed);
+    const trimmedName = name.trim();
+    if (!trimmedName) return;
+    setError(null);
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ userId: trimmedName });
+      if (password) params.set("password", password);
+      const res = await fetch(`/api/availability?${params}`, { cache: "no-store" });
+      if (res.status === 401) {
+        setError("Wrong password. Try again.");
+        return;
+      }
+      localStorage.setItem("ws_user_name", trimmedName);
+      if (password) localStorage.setItem("ws_user_password", password);
+      onSet(trimmedName, password);
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -417,22 +435,39 @@ function NameEntry({ onSet }: { onSet: (name: string) => void }) {
       animate={{ opacity: 1, y: 0 }}
     >
       <div className="bg-white shadow-md rounded-2xl p-6 space-y-4">
-        <h2 className="text-xl font-semibold text-center">What's your name?</h2>
-        <p className="text-sm text-gray-500 text-center">So others can see your availability.</p>
+        <h2 className="text-xl font-semibold text-center">Sign In</h2>
         <form onSubmit={submit} className="flex flex-col gap-3">
-          <input
-            type="text"
-            placeholder="e.g. Alice"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={32}
-            className="border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-            autoFocus
-          />
-          <Button type="submit" disabled={!name.trim()}>
-            Continue
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-700 w-28 shrink-0">Your Name:</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              maxLength={32}
+              className="flex-1 border rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              autoFocus
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-700 w-28 shrink-0">Password (optional):</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              maxLength={64}
+              className="flex-1 border rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+          <Button type="submit" disabled={!name.trim() || loading} className="mt-1">
+            {loading ? "Signing in…" : "Sign In"}
           </Button>
         </form>
+        <div className="text-xs text-gray-500 text-center space-y-0.5 pt-1">
+          <p>Your name and password are tied to this schedule only.</p>
+          <p>First time here? Pick any name and password.</p>
+          <p>Coming back? Sign in with the same details.</p>
+        </div>
       </div>
     </motion.div>
   );
@@ -466,15 +501,79 @@ function DayTabs({
   );
 }
 
+// --- Invite Modal ---
+
+function InviteModal({ onClose }: { onClose: () => void }) {
+  const [copied, setCopied] = useState(false);
+  const link = typeof window !== "undefined" ? window.location.href : "";
+
+  function copyLink() {
+    navigator.clipboard.writeText(link).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <motion.div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8"
+        initial={{ opacity: 0, scale: 0.92, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.92, y: 20 }}
+        transition={{ duration: 0.18 }}
+      >
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xl font-bold text-gray-800">Invite Someone</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+            aria-label="Close"
+          >
+            &times;
+          </button>
+        </div>
+
+        <p className="text-sm text-gray-500 mb-6">
+          Share this link so others can add their availability to the group schedule.
+        </p>
+
+        <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 mb-4">
+          <span className="flex-1 text-sm text-gray-700 truncate select-all">{link}</span>
+        </div>
+
+        <Button
+          onClick={copyLink}
+          className="w-full text-sm py-2.5"
+        >
+          {copied ? "Copied!" : "Copy Link"}
+        </Button>
+
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <p className="text-xs text-gray-400 text-center">
+            Anyone with this link can open the page, enter their name, and set their availability.
+          </p>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 // --- Availability form ---
 
 function AvailabilityForm({
   userId,
+  password,
   onChangeName,
 }: {
   userId: string;
+  password: string;
   onChangeName: () => void;
 }) {
+  const [showInvite, setShowInvite] = useState(false);
   const [selectedDay, setSelectedDay] = useState<Day>("Monday");
   const [availability, setAvailability] = useState<Record<Day, DayAvailability>>(
     makeDefaultAvailability()
@@ -499,7 +598,7 @@ function AvailabilityForm({
       setStatus(null);
       try {
         const [ownRes, allRes] = await Promise.all([
-          fetch(`/api/availability?userId=${encodeURIComponent(userId)}`, { cache: "no-store" }),
+          fetch(`/api/availability?userId=${encodeURIComponent(userId)}${password ? `&password=${encodeURIComponent(password)}` : ""}`, { cache: "no-store" }),
           fetch("/api/availability?all=true", { cache: "no-store" }),
         ]);
 
@@ -510,7 +609,13 @@ function AvailabilityForm({
 
         if (allRes.ok) {
           const allData = await allRes.json();
-          if (!cancelled && Array.isArray(allData)) setAllRecords(allData as UserRecord[]);
+          if (!cancelled && Array.isArray(allData)) {
+            setAllRecords(allData as UserRecord[]);
+            // Mark as host if no one has saved yet (first person on this page)
+            if (allData.length === 0 && !localStorage.getItem("ws_host_id")) {
+              localStorage.setItem("ws_host_id", userId);
+            }
+          }
         }
       } catch (e: unknown) {
         if (!cancelled)
@@ -566,12 +671,16 @@ function AvailabilityForm({
 
   const total = allRecords.length;
 
+  const isHost = localStorage.getItem("ws_host_id") === userId;
+
   return (
     <motion.div
       className="max-w-5xl mx-auto mt-8 px-4 pb-12"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
     >
+      {showInvite && <InviteModal onClose={() => setShowInvite(false)} />}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
         <h1 className="text-2xl font-bold text-gray-800">Availability</h1>
@@ -584,6 +693,15 @@ function AvailabilityForm({
             >
               {status}
             </span>
+          )}
+          {isHost && (
+            <button
+              type="button"
+              onClick={() => setShowInvite(true)}
+              className="text-sm px-4 py-1.5 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition"
+            >
+              Invite
+            </button>
           )}
           <Button
             onClick={handleSave}
@@ -693,24 +811,40 @@ function AvailabilityForm({
 
 export default function AvailabilityPage() {
   const [userId, setUserId] = useState<string | null>(null);
+  const [userPassword, setUserPassword] = useState<string>("");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const stored = localStorage.getItem("ws_user_name");
-    if (stored) setUserId(stored);
+    const storedName = localStorage.getItem("ws_user_name");
+    const storedPwd = localStorage.getItem("ws_user_password") ?? "";
+    if (storedName) {
+      setUserId(storedName);
+      setUserPassword(storedPwd);
+    }
   }, []);
 
   if (!mounted) return null;
 
-  if (!userId) return <NameEntry onSet={setUserId} />;
+  if (!userId)
+    return (
+      <NameEntry
+        onSet={(name, pwd) => {
+          setUserId(name);
+          setUserPassword(pwd);
+        }}
+      />
+    );
 
   return (
     <AvailabilityForm
       userId={userId}
+      password={userPassword}
       onChangeName={() => {
         localStorage.removeItem("ws_user_name");
+        localStorage.removeItem("ws_user_password");
         setUserId(null);
+        setUserPassword("");
       }}
     />
   );
