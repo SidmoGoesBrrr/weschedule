@@ -16,7 +16,11 @@ export async function POST(req: Request) {
     const saved = await prisma.availability.upsert({
       where: { userId: body.userId },
       update: { availability: body.availability },
-      create: { userId: body.userId, availability: body.availability },
+      create: {
+        userId: body.userId,
+        availability: body.availability,
+        password: body.password ?? null,
+      },
     });
 
     return NextResponse.json({ message: "Saved!", saved });
@@ -26,14 +30,17 @@ export async function POST(req: Request) {
   }
 }
 
-// GET /api/availability?userId=123  — fetch one user
-// GET /api/availability?all=true    — fetch all users
+// GET /api/availability?userId=123              — verify + fetch one user
+// GET /api/availability?userId=123&password=pw  — verify password then fetch
+// GET /api/availability?all=true                — fetch all users (no passwords)
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
 
     if (searchParams.get("all") === "true") {
-      const all = await prisma.availability.findMany();
+      const all = await prisma.availability.findMany({
+        select: { userId: true, availability: true, createdAt: true },
+      });
       return NextResponse.json(all);
     }
 
@@ -43,7 +50,15 @@ export async function GET(req: Request) {
     }
 
     const data = await prisma.availability.findUnique({ where: { userId } });
-    return NextResponse.json(data || {});
+    if (!data) return NextResponse.json({});
+
+    const enteredPassword = searchParams.get("password") ?? "";
+    if (data.password && data.password !== enteredPassword) {
+      return NextResponse.json({ error: "Wrong password" }, { status: 401 });
+    }
+
+    const { password: _, ...safe } = data;
+    return NextResponse.json(safe);
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
