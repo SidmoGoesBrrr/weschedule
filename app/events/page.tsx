@@ -15,18 +15,18 @@ export default function ViewEvents() {
     const search = (dates: string[]) => {
         async function asyncSearch() {
             let response = await getEvents("", "", "", dates);
-            let userEvents = response.events ? response.events.map((event) => {
+            let userEvents : Event[] = response.events ? response.events.map((event) => {
                 const link = event.link ? event.link : `/availability?event_id=${event.id}`;
                 return {
                     ...event,
                     link,
                 }
             }) : [];
-            // let corqEvents = []; //stub
-            // let sortedEvents = userEvents + corqEvents;
+            let corqEvents : Event[] = []; //stub
+            let sortedEvents = [...userEvents, ...corqEvents];
             // sortedEvents.sort();
-            setEvents(userEvents);
-            console.log(userEvents);
+            setEvents(sortedEvents);
+            console.log(sortedEvents);
         }
         asyncSearch();
     }
