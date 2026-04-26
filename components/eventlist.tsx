@@ -90,6 +90,6 @@ export function EventList(props: { events: Event[] }) {
 
 
     return (<Card className="flex-1 p-4 bg-[var(--secondary-background)] overflow-y-auto overscroll-y-contain h-[min(75vh,100rem)] [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:var(--border)_var(--secondary-background)] [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-foreground/10 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-foreground/45 hover:[&::-webkit-scrollbar-thumb]:bg-foreground/60">
-        {eventCards.length == 0 ? "Choose a date see events!" : eventCards}
+        {eventCards.length == 0 ? "No events for the selected dates!" : eventCards}
     </Card>)
 }
