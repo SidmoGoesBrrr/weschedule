@@ -30,7 +30,7 @@ const formSchema = z.object({
     dates: z.array(z.iso.date()),
 })
 
-export function EventSearch(props: { search: (dates: string[]) => void }) {
+export function EventSearch(props: { updateEventSearchParams: ({ dates } : { dates: string[] }) => void }) {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -52,7 +52,7 @@ export function EventSearch(props: { search: (dates: string[]) => void }) {
     };
 
     function onSubmit(values: z.infer<typeof formSchema>) {
-        props.search(values.dates);
+        props.updateEventSearchParams({ dates: values.dates });
     }
 
     function onError(errors: FieldErrors) { }
@@ -60,7 +60,7 @@ export function EventSearch(props: { search: (dates: string[]) => void }) {
     return (
         <Card className="min-h-[min(75vh,100rem)] bg-[var(--secondary-background)] p-6">
             <CardHeader>
-                <CardTitle>Event Search</CardTitle>
+                <CardTitle>Corq Event Search</CardTitle>
             </CardHeader>
             <CardContent>
                 <Form {...form}>

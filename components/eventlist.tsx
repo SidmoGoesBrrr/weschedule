@@ -2,6 +2,8 @@
 
 import Link from "next/link"
 
+import { ChevronRight, ChevronLeft } from 'lucide-react'
+
 import { Button } from "@/components/ui/button"
 import {
     Card,
@@ -45,9 +47,15 @@ function timeslotToString(timeslot: string) {
 
 }
 
-export function EventList(props: { events: Event[] }) {
+export function EventList(props: {
+    events: Event[],
+    incrPage: () => void,
+    decrPage: () => void,
+    page: number,
+    totalPages: number,
+}) {
     let eventCards = props.events.map((event) => {
-        console.log(event);
+        // console.log(event);
         return (
             <Card key={event.id} className="w-full p-4 mb-4 flex flex-col gap-3">
                 <CardHeader className="p-0">
@@ -89,7 +97,20 @@ export function EventList(props: { events: Event[] }) {
 
 
 
-    return (<Card className="flex-1 p-4 bg-[var(--secondary-background)] overflow-y-auto overscroll-y-contain h-[min(75vh,100rem)] [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:var(--border)_var(--secondary-background)] [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-foreground/10 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-foreground/45 hover:[&::-webkit-scrollbar-thumb]:bg-foreground/60">
-        {eventCards.length == 0 ? "No events for the selected dates!" : eventCards}
+    return (<Card className="flex-1 p-4 bg-[var(--secondary-background)] h-[min(75vh,100rem)]">
+        <div className='flex-row m-1'>
+            <Button className="mr-2 mb-2" disabled={props.page + 1 <= 1} onClick={props.decrPage}>
+                <ChevronLeft />
+            </Button>
+            <Button disabled={props.page + 1 >= props.totalPages} onClick={props.incrPage}>
+                <ChevronRight />
+            </Button>
+            <CardTitle>
+                {`Page ${props.page + 1}/${props.totalPages}`}
+            </CardTitle>
+        </div>
+        <div className="m-1 overflow-y-auto overscroll-y-contain  [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:var(--border)_var(--secondary-background)] [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-foreground/10 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-foreground/45 hover:[&::-webkit-scrollbar-thumb]:bg-foreground/60">
+            {eventCards.length == 0 ? "No events for the selected dates!" : eventCards}
+        </div>
     </Card>)
 }
