@@ -73,10 +73,23 @@ export async function postAvailability(event_id: string, guest_name: string, ava
                 .maybeSingle()
         )
         if (existingAvailRes.data) { //existing availability for this user/username already exists
-            const { data, error } = await serverClient
-                .from('availabilities')
-                .update({ timeslots: [...existingAvailRes.data.timeslots, ...formattedTimeslots]})
-                .eq('name', guest_name);
+            if (user_id) {
+                const { data, error } = await serverClient
+                    .from('availabilities')
+                    .update({ 
+                        name: guest_name,
+                        timeslots: formattedTimeslots,
+                    })
+                    .eq('user_id', user_id);
+            }
+            else {
+                const { data, error } = await serverClient
+                    .from('availabilities')
+                    .update({ 
+                        timeslots: formattedTimeslots,
+                    })
+                    .eq('name', guest_name);
+            }
         }
         else {
             const { data, error } = await serverClient
@@ -116,7 +129,7 @@ export async function getAllAvailabilitiesByEventId(event_id: string) {
             return { success: false, error: response.error.message }
         }
         let formattedAvails = response.data.map((avail) => {
-            let timeblocks: Record<string, { available: boolean, blocks: { start: string, end: string }[]}> = {};
+            let timeblocks: Record<string, { available: boolean, blocks: { start: string, end: string }[] }> = {};
             avail.timeslots.forEach((timeslot: string) => {
                 const info = timeslot.split(";");
                 const dayStr = info[0];
