@@ -24,6 +24,11 @@ export default function HeroPage() {
                 Create Event
               </Button>
             </Link>
+            <Link href='/events'>
+              <Button variant="neutral" size="sm">
+                Search Campus Events
+              </Button>
+            </Link>
           </nav>
         </div>
       </header>

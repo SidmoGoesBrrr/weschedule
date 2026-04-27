@@ -1,7 +1,11 @@
 "use client";
 
+import { useSearchParams } from 'next/navigation'
+
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
+
+import { getEventById } from '@/lib/serverEventUtil';
 
 // --- UI primitives ---
 
@@ -25,16 +29,16 @@ const Button: React.FC<ButtonProps> = ({ children, className = "", ...props }) =
 type TimeBlock = { start: string; end: string };
 type DayAvailability = { available: boolean; blocks: TimeBlock[] };
 
-const DAYS = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-] as const;
-type Day = (typeof DAYS)[number];
+// Branded type for YYYY-MM-DD format
+type Day = string & { readonly __brand: "Day" };
+
+// Validate and create a Day from a date string
+function createDay(dateStr: string): Day {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    throw new Error(`Invalid date format: ${dateStr}. Expected YYYY-MM-DD.`);
+  }
+  return dateStr as Day;
+}
 
 type UserRecord = { userId: string; availability: Record<Day, DayAvailability> };
 
@@ -51,39 +55,47 @@ function toHHMM(m: number): string {
 }
 
 function defaultDay(): DayAvailability {
-  return { available: true, blocks: [{ start: "09:00", end: "17:00" }] };
+  return { available: true, blocks: [] };
 }
 
-function makeDefaultAvailability(): Record<Day, DayAvailability> {
-  return DAYS.reduce((acc, day) => {
+function makeDefaultAvailability(days?: Day[]): Record<Day, DayAvailability> {
+  if (!days || days.length === 0) return {};
+  return days.reduce((acc, day) => {
     acc[day] = defaultDay();
     return acc;
   }, {} as Record<Day, DayAvailability>);
 }
 
 function normalizeIncoming(input: unknown): Record<Day, DayAvailability> {
-  const defaults = makeDefaultAvailability();
-  if (!input || typeof input !== "object") return defaults;
+  if (!input || typeof input !== "object") return {};
   const raw = input as Record<string, unknown>;
-  const next = { ...defaults };
+  const next: Record<Day, DayAvailability> = {};
 
-  for (const day of DAYS) {
-    const d = raw[day] as any;
-    if (!d) continue;
+  for (const [dayStr, d] of Object.entries(raw)) {
+    try {
+      const day = createDay(dayStr);
+      const dayData = d as any;
+      if (!dayData) continue;
 
-    if (Array.isArray(d.blocks)) {
-      next[day] = {
-        available: Boolean(d.available),
-        blocks: d.blocks
-          .filter((b: any) => b && typeof b.start === "string" && typeof b.end === "string")
-          .map((b: any) => ({ start: b.start, end: b.end })),
-      };
-      if (next[day].blocks.length === 0) next[day].blocks = [{ start: "09:00", end: "17:00" }];
-    } else if (typeof d.start === "string" && typeof d.end === "string") {
-      next[day] = {
-        available: Boolean(d.available),
-        blocks: [{ start: d.start, end: d.end }],
-      };
+      if (Array.isArray(dayData.blocks)) {
+        next[day] = {
+          available: Boolean(dayData.available),
+          blocks: dayData.blocks
+            .filter((b: any) => b && typeof b.start === "string" && typeof b.end === "string")
+            .map((b: any) => ({ start: b.start, end: b.end })),
+        };
+        if (next[day].blocks.length === 0) next[day].blocks = [{ start: "09:00", end: "17:00" }];
+      } else if (typeof dayData.start === "string" && typeof dayData.end === "string") {
+        next[day] = {
+          available: Boolean(dayData.available),
+          blocks: [{ start: dayData.start, end: dayData.end }],
+        };
+      }
+    } catch (e) {
+      // Skip invalid date formats
+      // console.log("normalizeIncoming error: ")
+      // console.log(e)
+      continue;
     }
   }
 
@@ -160,7 +172,7 @@ interface SingleDayGridProps {
 
 function SingleDayGrid({ day, availability, onChange, disabled = false }: SingleDayGridProps) {
   const [selectedSlots, setSelectedSlots] = useState<Set<number>>(() =>
-    availability[day].available ? blocksToSlots(availability[day].blocks) : new Set()
+    (availability[day] ?? { available: false } ).available ? blocksToSlots(availability[day].blocks) : new Set()
   );
 
   const prevRef = useRef<{ day: Day; availability: Record<Day, DayAvailability> }>({
@@ -171,7 +183,7 @@ function SingleDayGrid({ day, availability, onChange, disabled = false }: Single
     if (prevRef.current.day === day && prevRef.current.availability === availability) return;
     prevRef.current = { day, availability };
     setSelectedSlots(
-      availability[day].available ? blocksToSlots(availability[day].blocks) : new Set()
+      (availability[day] ?? { available: false } ).available ? blocksToSlots(availability[day].blocks) : new Set()
     );
   }, [day, availability]);
 
@@ -269,19 +281,29 @@ function SingleDayGrid({ day, availability, onChange, disabled = false }: Single
 // --- SingleDayHeatmap (group) ---
 
 function buildSlotUsers(records: UserRecord[]): Record<Day, Map<number, string[]>> {
-  const result = Object.fromEntries(
-    DAYS.map((d) => [d, new Map<number, string[]>()])
-  ) as Record<Day, Map<number, string[]>>;
+  const result: Record<Day, Map<number, string[]>> = {};
+  // console.log('buildSlotUsers records arg:')
+  // console.log(records)
 
   for (const { userId, availability } of records) {
-    const norm = normalizeIncoming(availability);
-    for (const day of DAYS) {
-      const d = norm[day];
-      if (!d.available) continue;
-      for (const slot of filledSlots(d.blocks)) {
-        const arr = result[day].get(slot) ?? [];
+    // console.log("userId, availability")
+    // console.log(userId)
+    // console.log(availability)
+    // const norm = normalizeIncoming(availability);
+    const norm = availability;
+    for (const [day, dayAvail] of Object.entries(norm)) {
+      // console.log(`day: ${day}`)
+      // console.log(`dayAvail:`)
+      // console.log(dayAvail)
+      const typedDay = day as Day;
+      if (!result[typedDay]) {
+        result[typedDay] = new Map<number, string[]>();
+      }
+      if (!dayAvail.available) continue;
+      for (const slot of filledSlots(dayAvail.blocks)) {
+        const arr = result[typedDay].get(slot) ?? [];
         arr.push(userId);
-        result[day].set(slot, arr);
+        result[typedDay].set(slot, arr);
       }
     }
   }
@@ -296,12 +318,16 @@ function SingleDayHeatmap({
   records: UserRecord[];
 }) {
   const slotUsers = useMemo(() => buildSlotUsers(records), [records]);
+  // console.log("slotUsers")
+  // console.log(slotUsers)
   const dayData = slotUsers[day];
   const total = records.length;
 
   const maxCount = useMemo(() => {
     let max = 0;
-    for (const v of dayData.values()) if (v.length > max) max = v.length;
+    if (dayData) {
+      for (const v of dayData.values()) if (v.length > max) max = v.length;
+    }
     return max;
   }, [dayData]);
 
@@ -346,7 +372,11 @@ function SingleDayHeatmap({
         {/* Single column */}
         <div className="flex flex-col border-l border-gray-300" style={{ width: COLUMN_WIDTH }}>
           {SLOTS.map((slot, idx) => {
-            const users = dayData.get(slot) ?? [];
+            const users = dayData ? (dayData.get(slot) ?? []) : [];
+            // console.log(`dayData`)
+            // console.log(dayData)
+            // console.log(`registered users for this day:`)
+            // console.log(users)
             const count = users.length;
             const opacity = maxCount > 0 ? count / maxCount : 0;
             const bg =
@@ -443,25 +473,36 @@ function NameEntry({ onSet }: { onSet: (name: string) => void }) {
 function DayTabs({
   selected,
   onSelect,
+  days,
 }: {
   selected: Day;
   onSelect: (d: Day) => void;
+  days: Day[];
 }) {
   return (
     <div className="flex gap-1 justify-center flex-wrap">
-      {DAYS.map((day) => (
-        <button
-          key={day}
-          onClick={() => onSelect(day)}
-          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-            selected === day
+      {days.length === 0 ? (
+        <div className="text-sm text-gray-400">No dates available</div>
+      ) : (
+        days.map((day) => (
+          <button
+            key={day}
+            onClick={() => onSelect(day)}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${selected === day
               ? "bg-blue-600 text-white shadow-sm"
               : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          {day.slice(0, 3)}
-        </button>
-      ))}
+              }`}
+          >
+            {
+              new Date(day).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })
+            }
+          </button>
+        ))
+      )}
     </div>
   );
 }
@@ -475,20 +516,29 @@ function AvailabilityForm({
   userId: string;
   onChangeName: () => void;
 }) {
-  const [selectedDay, setSelectedDay] = useState<Day>("Monday");
-  const [availability, setAvailability] = useState<Record<Day, DayAvailability>>(
-    makeDefaultAvailability()
-  );
+  const searchParams = useSearchParams();
+  const param = searchParams.get('event_id');
+  if (!param) {
+    return (<p>No event ID provided</p>)
+  }
+  const event_id: string = param ?? "";
+
+
+  const [availableDays, setAvailableDays] = useState<Day[]>([]);
+  const [selectedDay, setSelectedDay] = useState<Day | null>(null);
+  const [availability, setAvailability] = useState<Record<Day, DayAvailability>>({});
   const [allRecords, setAllRecords] = useState<UserRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
   async function fetchAll() {
-    const res = await fetch("/api/availability?all=true", { cache: "no-store" });
+    const res = await fetch(`/api/availability?all=true&event_id=${event_id}`, { cache: "no-store" });
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data)) setAllRecords(data as UserRecord[]);
+      if (data.success && Array.isArray(data.availabilities)) {
+        setAllRecords(data.availabilities as UserRecord[]);
+      }
     }
   }
 
@@ -499,18 +549,44 @@ function AvailabilityForm({
       setStatus(null);
       try {
         const [ownRes, allRes] = await Promise.all([
-          fetch(`/api/availability?userId=${encodeURIComponent(userId)}`, { cache: "no-store" }),
-          fetch("/api/availability?all=true", { cache: "no-store" }),
+          fetch(`/api/availability?event_id=${event_id}&userId=${encodeURIComponent(userId)}`, { cache: "no-store" }),
+          fetch(`/api/availability?event_id=${event_id}&all=true`, { cache: "no-store" }),
         ]);
+        const response = await getEventById(event_id);
+        const eventDates: Day[] = response.event.dates;
+
+
 
         if (!ownRes.ok) throw new Error(`Load failed (${ownRes.status})`);
         const ownData = await ownRes.json();
-        if (!cancelled && ownData?.availability)
-          setAvailability(normalizeIncoming(ownData.availability));
+        // console.log('ownData')
+        // console.log(ownData)
+
+        // Load all records first to extract event dates
 
         if (allRes.ok) {
           const allData = await allRes.json();
-          if (!cancelled && Array.isArray(allData)) setAllRecords(allData as UserRecord[]);
+          // console.log('loading all data');
+          // console.log(allData);
+          if (!cancelled && allData.success && Array.isArray(allData.availabilities)) {
+            setAllRecords(allData.availabilities as UserRecord[]);
+          }
+        }
+
+        if (!cancelled) {
+          // console.log('checking own data availability')
+          if (ownData?.availability) {
+            // const normalized = normalizeIncoming(ownData.availability);
+            const normalized = ownData.availability
+            // console.log('normalized')
+            // console.log(normalized)
+            setAvailability(normalized);
+            const days = Object.keys(normalized) as Day[];
+            // setAvailableDays(days.length > 0 ? days : eventDates);
+          }
+          setAvailableDays(eventDates);
+          // setAvailability(makeDefaultAvailability(eventDates));
+          if (eventDates.length > 0) setSelectedDay(eventDates[0]);
         }
       } catch (e: unknown) {
         if (!cancelled)
@@ -523,13 +599,13 @@ function AvailabilityForm({
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [userId, event_id]);
 
   async function handleSave() {
     setStatus(null);
     try {
       setIsSaving(true);
-      const res = await fetch("/api/availability", {
+      const res = await fetch(`/api/availability?event_id=${event_id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, availability }),
@@ -550,16 +626,19 @@ function AvailabilityForm({
 
   // Count available/total for heatmap legend
   const { minAvail, maxAvail } = useMemo(() => {
+    if (!selectedDay) return { minAvail: 0, maxAvail: 0 };
     const slotUsers = buildSlotUsers(allRecords);
     const dayData = slotUsers[selectedDay];
     let min = Infinity;
     let max = 0;
-    for (const v of dayData.values()) {
-      if (v.length < min) min = v.length;
-      if (v.length > max) max = v.length;
+    if (dayData) {
+      for (const v of dayData.values()) {
+        if (v.length < min) min = v.length;
+        if (v.length > max) max = v.length;
+      }
     }
     return {
-      minAvail: dayData.size === 0 ? 0 : min,
+      minAvail: !dayData || dayData.size === 0 ? 0 : min,
       maxAvail: max,
     };
   }, [allRecords, selectedDay]);
@@ -578,9 +657,8 @@ function AvailabilityForm({
         <div className="flex items-center gap-3">
           {status && (
             <span
-              className={`text-sm ${
-                status.toLowerCase().includes("failed") ? "text-red-600" : "text-green-700"
-              }`}
+              className={`text-sm ${status.toLowerCase().includes("failed") ? "text-red-600" : "text-green-700"
+                }`}
             >
               {status}
             </span>
@@ -604,7 +682,7 @@ function AvailabilityForm({
 
       {/* Day tabs */}
       <div className="mb-6">
-        <DayTabs selected={selectedDay} onSelect={setSelectedDay} />
+        <DayTabs selected={selectedDay || availableDays[0]} onSelect={setSelectedDay} days={availableDays} />
       </div>
 
       {isLoading && (
@@ -647,12 +725,14 @@ function AvailabilityForm({
               </p>
             </div>
 
-            <SingleDayGrid
-              day={selectedDay}
-              availability={availability}
-              onChange={setAvailability}
-              disabled={isLoading || isSaving}
-            />
+            {selectedDay && (
+              <SingleDayGrid
+                day={selectedDay}
+                availability={availability}
+                onChange={setAvailability}
+                disabled={isLoading || isSaving}
+              />
+            )}
           </div>
 
           {/* Right: group heatmap */}
@@ -681,7 +761,7 @@ function AvailabilityForm({
               </p>
             </div>
 
-            <SingleDayHeatmap day={selectedDay} records={allRecords} />
+            {selectedDay && <SingleDayHeatmap day={selectedDay} records={allRecords} />}
           </div>
         </div>
       )}
