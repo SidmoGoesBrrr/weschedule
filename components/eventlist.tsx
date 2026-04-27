@@ -20,13 +20,23 @@ import { Event } from '@/lib/serverEventUtil';
 
 function timeslotToString(timeslot: string) {
     // assumed format is "MM-DD-YYYY;HH:MM;HH:MM"
-    const dayTemp = new Date(timeslot.slice(0, 10));
-    const startTimeTemp = new Date();
-    startTimeTemp.setHours(Number(timeslot.slice(11, 13)));
-    startTimeTemp.setMinutes(Number(timeslot.slice(14, 16)));
-    const endTimeTemp = new Date();
-    endTimeTemp.setHours(Number(timeslot.slice(17, 19)));
-    endTimeTemp.setMinutes(Number(timeslot.slice(20, 22)));
+    const components = timeslot.split(';');
+    const dayTemp = new Date(components[0]);
+    const startTime = components[1].split(':');
+    const startTimeTemp = new Date(dayTemp);
+    startTimeTemp.setHours(Number(startTime[0]), Number(startTime[1]));
+
+    const endTime = components[2].split(':');
+    const endTimeTemp = new Date(dayTemp);
+    endTimeTemp.setHours(Number(endTime[0]), Number(endTime[1]));
+
+    // const dayTemp = new Date(timeslot.slice(0, 10));
+    // const startTimeTemp = new Date();
+    // startTimeTemp.setHours(Number(timeslot.slice(11, 13)));
+    // startTimeTemp.setMinutes(Number(timeslot.slice(14, 16)));
+    // const endTimeTemp = new Date();
+    // endTimeTemp.setHours(Number(timeslot.slice(17, 19)));
+    // endTimeTemp.setMinutes(Number(timeslot.slice(20, 22)));
 
     const dayString = dayTemp.toLocaleDateString('en-US', {
         year: 'numeric',
@@ -52,6 +62,7 @@ export function EventList(props: {
     incrPage: () => void,
     decrPage: () => void,
     page: number,
+    numEvents: number,
     totalPages: number,
 }) {
     let eventCards = props.events.map((event) => {
@@ -64,7 +75,7 @@ export function EventList(props: {
                     </CardTitle>
                 </CardHeader>
                 <CardDescription className="px-0">
-                    {event.description}
+                    <div dangerouslySetInnerHTML={{__html: event.description}}/>
                 </CardDescription>
                 <CardContent className="p-0 space-y-2">
                     {event.location ? (
@@ -85,9 +96,9 @@ export function EventList(props: {
                     </div>
                 </CardContent>
                 <CardFooter className="p-0">
-                    <Link href={event.link}>
+                    <Link target='_blank' href={event.link}>
                         <Button>
-                            Register
+                            Go to Event
                         </Button>
                     </Link>
                 </CardFooter>
@@ -106,7 +117,7 @@ export function EventList(props: {
                 <ChevronRight />
             </Button>
             <CardTitle>
-                {`Page ${props.page + 1}/${props.totalPages}`}
+                {`Page ${props.page + 1}/${props.totalPages} (${props.numEvents} total results)`}
             </CardTitle>
         </div>
         <div className="m-1 overflow-y-auto overscroll-y-contain  [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:var(--border)_var(--secondary-background)] [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-foreground/10 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-foreground/45 hover:[&::-webkit-scrollbar-thumb]:bg-foreground/60">

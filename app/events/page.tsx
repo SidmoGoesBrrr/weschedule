@@ -4,7 +4,8 @@ import Link from 'next/link'
 
 import { useState, useEffect } from 'react';
 
-import { Event, getEvents } from '@/lib/serverEventUtil';
+import { Event } from '@/lib/serverEventUtil';
+import { getEvents } from '@/lib/eventFetching';
 
 import { EventSearch } from '@/components/eventsearch';
 import { EventList } from '@/components/eventlist';
@@ -29,24 +30,28 @@ export default function ViewEvents() {
     });
     useEffect(() => {
         async function asyncSearch() {
+            console.log('searching!')
             // send dates, page number, and page capacity
             // response should be success if page number within total pages
             // success response returns events and total number of events
-            // const response = //stub
-            if (eventSearchParams.page >= 0 && eventSearchParams.page < eventsInfo.numTotalEvents / PAGE_CAPACITY + 1) {
-                // const response = await getEvents("", "", "", eventSearchParams.dates);
-                // if (response.success) {
-                //     response.events.map((event) => ({
-                //         ...event,
-                //         link: '/', //stub
-                //     }))
-                // }
-                // setEventsInfo({
-                    // data: response.data.events,
-                    // numTotalEvents: response.totalPages
-                // });
-                // console.log(response.data);
+            let dateRanges: { start: Date, end: Date }[] = [];
+            eventSearchParams.dates.forEach((date) => {
+                let endDate = new Date(date);
+                endDate.setHours(23, 59);
+                dateRanges.push({
+                    start: new Date(date),
+                    end: endDate,
+                })
+            })
+            const response = await getEvents(dateRanges, eventSearchParams.page, PAGE_CAPACITY);
+            if (response.success) {
+                console.log(response);
+                setEventsInfo({
+                    events: response.events ?? [],
+                    numTotalEvents: response.numEvents ?? 0,
+                });
             }
+
         }
         asyncSearch();
     }, [eventSearchParams])
@@ -91,7 +96,8 @@ export default function ViewEvents() {
                     <EventList
                         events={eventsInfo.events}
                         page={eventSearchParams.page}
-                        totalPages={eventsInfo.numTotalEvents / PAGE_CAPACITY + 1}
+                        numEvents={eventsInfo.numTotalEvents}
+                        totalPages={Math.max(1, Math.ceil(eventsInfo.numTotalEvents / PAGE_CAPACITY))}
                         incrPage={incrPage}
                         decrPage={decrPage} />
                 </div>
