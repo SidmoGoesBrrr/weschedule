@@ -3,6 +3,16 @@ import { getUser } from './serverUserUtil';
 import {createServerClient} from "@supabase/ssr";
 import { cookies} from "next/headers";
 
+export type Event = {
+    id: string;
+    title: string;
+    description: string;
+    location: string;
+    dates: string[];
+    timeslots: string[];
+    link: string;
+}
+
 function getSupabaseVariables(){
     const url:string|undefined = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const anon_key:string|undefined = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
@@ -40,7 +50,7 @@ async function verify() {
     return { user, authError };
 }
 
-export async function createEvent(title : string, description : string, location : string, timeslots: string[]) {
+export async function createEvent(title : string, description : string, location : string, dates: string[], timeslots: string[]) {
     try {
         // auth user
         // console.log('verifying!');
@@ -66,6 +76,7 @@ export async function createEvent(title : string, description : string, location
                 title: title,
                 description: description,
                 location: location,
+                dates: dates,
                 timeslots: timeslots,
             })
             .select();
@@ -138,16 +149,18 @@ export async function getEventById(event_id : string) {
     }
 }
 
-export async function getEvents(title : string, description : string, location : string) {
+export async function getEvents(title : string, description : string, location : string, dates: string[]) {
     try {
         // get supabase client
         const serverClient = await makeServerClient();
+
         const response = await serverClient
             .from('events')
             .select()
             .ilike('title', '%' + title + '%')
             .ilike('description', '%' + description + '%')
-            .ilike('location', '%' + location + '%');
+            .ilike('location', '%' + location + '%')
+            .overlaps('dates', dates);
         
         if (response.error) {
             return { success: false, error: response.error.message }

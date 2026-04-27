@@ -159,19 +159,26 @@ export function EventCreatorForm() {
         console.log(values);
         async function asyncSubmit() {
             // values to send: title, desc, location, timeslots
-            
-            
+
+
             // let response = { success: true }; //stub
             let timeslotStrings = values.timeslots.map(timeslot => (timeslot.date + ";" + timeslot.start + ";" + timeslot.end));
-            let response = await createEvent(values.title, values.description, values.location, timeslotStrings);
+            let response = await createEvent(values.title, values.description, values.location, values.dates, timeslotStrings);
 
             // possible responses
             // warning: event timeslots overlap w/ existing reserved timeslots 
             // failure: length restrictions validated on title, desc, and/or location
             if (response.success) {
                 toast.success("Event successfully created!");
-                // send to homepage
-                router.push('/');
+                console.log(response.data);
+                if (response.data && response.data[0]) {
+                    // send to availability page for this event
+                    router.push(`/availability?event_id=${response.data[0].id}`)
+                }
+                else {
+                    // send to homepage if not possible
+                    router.push(`/`);
+                }
             }
             else {
                 toast.error("Uh oh!"); //stub
