@@ -87,10 +87,15 @@ export default function LoginPage() {
                             <form
                                 action ={async (data)=>{
                                     const password = data.get("password") as string;
-                                    const email = data.get("email") as string; 
+                                    const email = data.get("email") as string;
                                     const userProcessError = isLogin?await login(email, password): await signUp(email, password);
-                                    setError(userProcessError?.message?userProcessError?.message:"success");
-                                    router.push("/eventcreator");
+                                    if (userProcessError?.message) {
+                                        setError(userProcessError.message);
+                                        return;
+                                    }
+                                    setError("success");
+                                    router.refresh();
+                                    router.push("/availability");
                                 }}
                                 className="space-y-5"
                             >
