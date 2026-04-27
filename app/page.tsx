@@ -1,12 +1,10 @@
-import SonnerDemo from "@/components/mysonner"
-import AlertDialogDemo from "@/components/myalertdialog"
+import HeroPage from "@/components/heropage"
+
+/**
+ * Render the application's home (hero) page.
+ *
+ * @returns The JSX element representing the Home page
+ */
 export default function Home() {
-  return (
-   
-    <div>
-      <h1>Hello World</h1>
-      <SonnerDemo />
-      <AlertDialogDemo />
-    </div>
-  );
+  return <HeroPage />
 }
