@@ -1,11 +1,18 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { insertLocalMessage, listLocalMessages } from "@/lib/local-messages";
 
 const TABLE_NAME = "messages";
 const USERS_TABLE_NAME = "userslogin";
 
 async function resolveNameByEmail(email: string) {
+  let supabaseAdmin;
+  try {
+    supabaseAdmin = getSupabaseAdmin();
+  } catch {
+    return "";
+  }
   if (!email) {
     return "";
   }
@@ -32,6 +39,14 @@ async function getAuthenticatedUser() {
     return null;
   }
 
+  let supabaseAdmin;
+  try {
+    supabaseAdmin = getSupabaseAdmin();
+  } catch {
+    // If Supabase isn't configured, still treat the cookie as identity.
+    return { email, name: email.split("@")[0] || "Unknown User" };
+  }
+
   const result = await supabaseAdmin
     .from(USERS_TABLE_NAME)
     .select("name, email")
@@ -54,6 +69,24 @@ export async function GET(req: Request) {
 
   if (!roomId) {
     return NextResponse.json({ error: "roomId is required" }, { status: 400 });
+  }
+
+  let supabaseAdmin;
+  try {
+    supabaseAdmin = getSupabaseAdmin();
+  } catch {
+    // Local dev fallback so chat history still works without Supabase.
+    const rows = await listLocalMessages(roomId);
+    return NextResponse.json({
+      messages: rows.map((row) => ({
+        id: row.id,
+        content: row.content,
+        sender_name: row.sender_name ?? "Unknown User",
+        created_at: row.created_at,
+        room_id: row.room_id,
+      })),
+      persisted: "local",
+    });
   }
 
   const { data, error } = await supabaseAdmin
@@ -165,6 +198,13 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    let supabaseAdmin: ReturnType<typeof getSupabaseAdmin> | null = null;
+    try {
+      supabaseAdmin = getSupabaseAdmin();
+    } catch {
+      supabaseAdmin = null;
+    }
+
     const authenticatedUser = await getAuthenticatedUser();
 
     const body = await req.json();
@@ -179,6 +219,32 @@ export async function POST(req: Request) {
     const senderEmail = authenticatedUser?.email || bodyEmail;
     const lookedUpName = await resolveNameByEmail(senderEmail);
     const senderName = authenticatedUser?.name || lookedUpName || "Unknown User";
+
+    if (!supabaseAdmin) {
+      const id = crypto.randomUUID();
+      const createdAtISO = new Date().toISOString();
+      await insertLocalMessage({
+        id,
+        roomId,
+        content,
+        email: senderEmail,
+        senderName,
+        createdAtISO,
+      });
+      return NextResponse.json(
+        {
+          message: {
+            id,
+            content,
+            room_id: roomId,
+            sender_name: senderName,
+            created_at: createdAtISO,
+          },
+          persisted: "local",
+        },
+        { status: 201 }
+      );
+    }
 
     // Try newer schema first, then fall back to legacy column names.
     let data: Record<string, unknown> | null = null;

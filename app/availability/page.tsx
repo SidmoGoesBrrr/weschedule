@@ -74,11 +74,11 @@ export default function AvailabilityPage() {
     }));
   };
 
- 
+
   //availability submitting
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     console.log("Submitting availability:", availability);
     alert("Availability submitted!");
   };
@@ -88,7 +88,7 @@ export default function AvailabilityPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [messageValue, setMessageValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
+
   const loadIdentityFromCookie = async () => {
     const meResponse = await fetch("/api/auth/me");
     if (!meResponse.ok) {
@@ -121,7 +121,8 @@ export default function AvailabilityPage() {
       const identityReady = await loadIdentityFromCookie();
       if (!identityReady) {
         console.warn("Unable to resolve logged-in user from cookies.");
-        return;
+        // Allow users to chat even without auth cookies; persistence may fail.
+        currentUserNameRef.current = "Anonymous";
       }
     }
 
@@ -152,7 +153,7 @@ export default function AvailabilityPage() {
       console.warn("Message was sent live but could not be persisted.", error);
     }
   };
-  
+
   // Load stored messages once.
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -174,11 +175,11 @@ export default function AvailabilityPage() {
         const payload = await response.json();
         const loadedMessages = Array.isArray(payload?.messages)
           ? payload.messages.map((msg: { id: string; content: string; sender?: string; sender_name?: string }) => ({
-              id: msg.id,
-              text: msg.content,
-              isOutgoing: false,
-              senderName: msg.sender ?? msg.sender_name ?? "Unknown User",
-            }))
+            id: msg.id,
+            text: msg.content,
+            isOutgoing: false,
+            senderName: msg.sender ?? msg.sender_name ?? "Unknown User",
+          }))
           : [];
 
         setMessages(loadedMessages);
@@ -217,132 +218,137 @@ export default function AvailabilityPage() {
 
   return (
     <div className="h-screen w-full">
-        <ResizablePanelGroup
-          direction="horizontal"
-          className="h-full overflow-auto"
-        >
-          <ResizablePanel defaultSize={25} >
-            <ResizablePanelGroup direction="horizontal">
-              <ResizablePanel defaultSize={75}>
-                <motion.div 
-                  className="max-w-xl mx-auto mt-10"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  
-                  <Card>
-                    <CardContent className="space-y-6">
-                      <h2 className="text-2xl font-semibold mb-4 text-center">
-                        Set Your Weekly Availability
-                      </h2>
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="h-full overflow-auto"
+      >
+        <ResizablePanel defaultSize={25} >
+          <ResizablePanelGroup direction="horizontal">
+            <ResizablePanel defaultSize={75}>
+              <motion.div
+                className="max-w-xl mx-auto mt-10"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
 
-                      <form onSubmit={handleSubmit} className="space-y-4">
-                        {days.map((day) => (
-                          <div
-                            key={day}
-                            className="flex items-center justify-between gap-4 border-b pb-3 last:border-0"
-                          >
-                            <span className="w-24 font-medium">{day}</span>
-                            {availability[day].available ? (
-                              <>
-                                <div className="flex items-center gap-2">
-                                  <input
-                                    type="time"
-                                    value={availability[day].start}
-                                    onChange={(e) => handleChange(day, "start", e.target.value)}
-                                    className="border rounded-md px-2 py-1 text-sm"
-                                  />
-                                  <span>-</span>
-                                  <input
-                                    type="time"
-                                    value={availability[day].end}
-                                    onChange={(e) => handleChange(day, "end", e.target.value)}
-                                    className="border rounded-md px-2 py-1 text-sm"
-                                  />
-                                </div>
-                                <Button
-                                  type="button"
-                                  onClick={() => handleChange(day, "available", false)}
-                                  className="text-xs"
-                                >
-                                  Mark Unavailable
-                                </Button>
-                              </>
-                            ) : (
+                <Card>
+                  <CardContent className="space-y-6">
+                    <h2 className="text-2xl font-semibold mb-4 text-center">
+                      Set Your Weekly Availability
+                    </h2>
+
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      {days.map((day) => (
+                        <div
+                          key={day}
+                          className="flex items-center justify-between gap-4 border-b pb-3 last:border-0"
+                        >
+                          <span className="w-24 font-medium">{day}</span>
+                          {availability[day].available ? (
+                            <>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="time"
+                                  value={availability[day].start}
+                                  onChange={(e) => handleChange(day, "start", e.target.value)}
+                                  className="border rounded-md px-2 py-1 text-sm"
+                                />
+                                <span>-</span>
+                                <input
+                                  type="time"
+                                  value={availability[day].end}
+                                  onChange={(e) => handleChange(day, "end", e.target.value)}
+                                  className="border rounded-md px-2 py-1 text-sm"
+                                />
+                              </div>
                               <Button
                                 type="button"
-                                onClick={() => handleChange(day, "available", true)}
+                                onClick={() => handleChange(day, "available", false)}
                                 className="text-xs"
                               >
-                                Set Available
+                                Mark Unavailable
                               </Button>
-                            )}
-                          </div>
+                            </>
+                          ) : (
+                            <Button
+                              type="button"
+                              onClick={() => handleChange(day, "available", true)}
+                              className="text-xs"
+                            >
+                              Set Available
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+
+                      <Button type="submit" className="w-full mt-4">
+                        Submit Availability
+                      </Button>
+                    </form>
+
+                    <div className="mt-6 border-t pt-4">
+                      <h3 className="font-semibold mb-2">Group Availability (Example)</h3>
+                      <ul className="text-sm space-y-1">
+                        {days.map((day) => (
+                          <li key={day}>
+                            <span className="font-medium">{day}:</span>{" "}
+                            {groupAvailability[day]} people available
+                          </li>
                         ))}
-
-                        <Button type="submit" className="w-full mt-4">
-                          Submit Availability
-                        </Button>
-                      </form>
-
-                      <div className="mt-6 border-t pt-4">
-                        <h3 className="font-semibold mb-2">Group Availability (Example)</h3>
-                        <ul className="text-sm space-y-1">
-                          {days.map((day) => (
-                            <li key={day}>
-                              <span className="font-medium">{day}:</span>{" "}
-                              {groupAvailability[day]} people available
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </ResizablePanel>
-              <ResizableHandle />
-              <ResizablePanel defaultSize={25} minSize={25} maxSize={50}>
-                <div className="flex min-w-0 flex-col h-full bg-main p-6">
-                  <span className="font-base flex min-w-0 flex-col h-full">
+                      </ul>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </ResizablePanel>
+            <ResizableHandle />
+            <ResizablePanel defaultSize={25} minSize={25} maxSize={50}>
+              <div className="flex min-w-0 flex-col h-full bg-main p-6">
+                <div className="font-base flex min-w-0 flex-col h-full">
                   <ScrollArea className="rounded-base min-w-0 flex-1 mt-5 mb-4 items-center text-main-foreground border-2 border-border bg-white p-4 shadow-shadow">
-                  <div className="min-w-0 w-full overflow-x-hidden">
-                  <ul id="messages" className="min-w-0 w-full space-y-2 mb-4 px-2 py-1">
-                    {messages.map((msg) => (
-                      <li
-                        key={msg.id}
-                        className={`border-2 border-border w-full max-w-full break-words [overflow-wrap:anywhere] whitespace-pre-wrap p-2 rounded p-4 shadow-shadow ${
-                          msg.isOutgoing ? 'bg-sky-200 border-sky-400' : 'bg-slate-100 border-slate-300'
-                        }`}
-                      >
-                        <p className="text-xs font-semibold mb-1 opacity-80">{msg.isOutgoing ? "You" : msg.senderName}</p>
-                        {msg.text}
-                      </li>
-                    ))}
-                    <div ref={messagesEndRef} />
-                  </ul>
-                  </div>
+                    <div className="min-w-0 w-full overflow-x-hidden">
+                      <ul id="messages" className="min-w-0 w-full space-y-2 mb-4 px-2 py-1">
+                        {messages.map((msg) => (
+                          <li
+                            key={msg.id}
+                            className={`border-2 border-border w-full max-w-full break-words [overflow-wrap:anywhere] whitespace-pre-wrap p-2 rounded p-4 shadow-shadow ${msg.isOutgoing ? 'bg-sky-200 border-sky-400' : 'bg-slate-100 border-slate-300'
+                              }`}
+                          >
+                            <p className="text-xs font-semibold mb-1 opacity-80">{msg.isOutgoing ? "You" : msg.senderName}</p>
+                            {msg.text}
+                          </li>
+                        ))}
+                        <div ref={messagesEndRef} />
+                      </ul>
+                    </div>
                   </ScrollArea>
                   <div className="flex-shrink-0">
                     <form onSubmit={handleMessageSubmit} id="form" action="" className="flex gap-2 mb-4">
-                      <Input 
+                      <Input
                         id="input"
-                        className="flex-1 p-4 shadow-shadow" 
-                        type="message" 
-                        placeholder="Enter Your Message..." 
+                        className="flex-1 p-4 shadow-shadow"
+                        type="text"
+                        placeholder="Enter Your Message..."
                         value={messageValue}
                         onChange={(e) => setMessageValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            (e.currentTarget.form as HTMLFormElement | null)?.requestSubmit();
+                          }
+                        }}
                       />
-                      <Button className="border-2 border-border text-white bg-sky-400/90 p-4 shadow-shadow" type="submit"> 
-                        Send 
+                      <Button className="border-2 border-border text-white bg-sky-400/90 p-4 shadow-shadow" type="submit">
+                        Send
                       </Button>
                     </form>
                   </div>
-                  </span>
                 </div>
-              </ResizablePanel>
-            </ResizablePanelGroup>
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      </div>
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    </div>
   );
 }
