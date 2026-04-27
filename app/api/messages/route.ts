@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
-import { insertLocalMessage, listLocalMessages } from "@/lib/local-messages";
 
 const TABLE_NAME = "messages";
 const USERS_TABLE_NAME = "userslogin";
@@ -75,18 +74,8 @@ export async function GET(req: Request) {
   try {
     supabaseAdmin = getSupabaseAdmin();
   } catch {
-    // Local dev fallback so chat history still works without Supabase.
-    const rows = await listLocalMessages(roomId);
-    return NextResponse.json({
-      messages: rows.map((row) => ({
-        id: row.id,
-        content: row.content,
-        sender_name: row.sender_name ?? "Unknown User",
-        created_at: row.created_at,
-        room_id: row.room_id,
-      })),
-      persisted: "local",
-    });
+    // Chat history is Supabase-only.
+    return NextResponse.json({ messages: [] }, { status: 200 });
   }
 
   const { data, error } = await supabaseAdmin
@@ -198,11 +187,14 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    let supabaseAdmin: ReturnType<typeof getSupabaseAdmin> | null = null;
+    let supabaseAdmin: ReturnType<typeof getSupabaseAdmin>;
     try {
       supabaseAdmin = getSupabaseAdmin();
     } catch {
-      supabaseAdmin = null;
+      return NextResponse.json(
+        { error: "Supabase is not configured. Messages can only be stored in Supabase." },
+        { status: 503 }
+      );
     }
 
     const authenticatedUser = await getAuthenticatedUser();
@@ -211,6 +203,7 @@ export async function POST(req: Request) {
     const content = typeof body?.text === "string" ? body.text.trim() : "";
     const roomId = typeof body?.roomId === "string" ? body.roomId.trim() : "";
     const bodyEmail = typeof body?.email === "string" ? body.email.trim() : "";
+    const bodySenderName = typeof body?.senderName === "string" ? body.senderName.trim() : "";
 
     if (!content || !roomId) {
       return NextResponse.json({ error: "Message text and roomId are required." }, { status: 400 });
@@ -218,33 +211,7 @@ export async function POST(req: Request) {
 
     const senderEmail = authenticatedUser?.email || bodyEmail;
     const lookedUpName = await resolveNameByEmail(senderEmail);
-    const senderName = authenticatedUser?.name || lookedUpName || "Unknown User";
-
-    if (!supabaseAdmin) {
-      const id = crypto.randomUUID();
-      const createdAtISO = new Date().toISOString();
-      await insertLocalMessage({
-        id,
-        roomId,
-        content,
-        email: senderEmail,
-        senderName,
-        createdAtISO,
-      });
-      return NextResponse.json(
-        {
-          message: {
-            id,
-            content,
-            room_id: roomId,
-            sender_name: senderName,
-            created_at: createdAtISO,
-          },
-          persisted: "local",
-        },
-        { status: 201 }
-      );
-    }
+    const senderName = authenticatedUser?.name || lookedUpName || bodySenderName || "Unknown User";
 
     // Try newer schema first, then fall back to legacy column names.
     let data: Record<string, unknown> | null = null;
