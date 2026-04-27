@@ -1,0 +1,19 @@
+{
+    "name": "messagingServer",
+    "version": "0.0.1",
+    "description": "Backend server of the messaging function in the availability page",
+    "type": "module",
+    "dependencies": {
+        "express": "^4.22.1",
+        "socket.io": "^4.8.3"
+    },
+    "devDependencies": {
+        "@types/express": "^5.0.6",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.7.2"
+    },
+    "scripts": {
+        "dev": "ts-node index.ts",
+        "start": "node index.js"
+    }
+}

@@ -3,7 +3,6 @@ import prisma from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
 // POST /api/availability
 export async function POST(req: Request) {
   try {
