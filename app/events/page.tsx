@@ -36,25 +36,37 @@ export default function ViewEvents() {
             // success response returns events and total number of events
             let dateRanges: { start: Date, end: Date }[] = [];
             eventSearchParams.dates.forEach((date) => {
-                let endDate = new Date(date);
+                const components = date.split('-');
+                const zeroIndexedDay = Number(components[2]) + 1;
+                const adjustedDate = `${components[0]}-${components[1]}-${String(zeroIndexedDay).padStart(2, '0')}`;
+                const startDate = new Date(adjustedDate)
+                // startDate.setDate(startDate.getDay() + 1);
+                const endDate = new Date(adjustedDate);
+                // endDate.setDate(endDate.getDay() + 1);
                 endDate.setHours(23, 59);
                 dateRanges.push({
-                    start: new Date(date),
+                    start: startDate,
                     end: endDate,
                 })
             })
+            console.log('before send')
+            console.log(dateRanges);
             const response = await getEvents(dateRanges, eventSearchParams.page, PAGE_CAPACITY);
-            if (response.success) {
-                console.log(response);
-                setEventsInfo({
-                    events: response.events ?? [],
-                    numTotalEvents: response.numEvents ?? 0,
-                });
-            }
+            console.log(response);
+            setEventsInfo({
+                events: response.events ?? [],
+                numTotalEvents: response.numEvents ?? 0,
+            });
 
         }
         asyncSearch();
     }, [eventSearchParams])
+    if (eventSearchParams.page >= Math.max(1, Math.ceil(eventsInfo.numTotalEvents / PAGE_CAPACITY))) {
+        setEventSearchParams({
+            ...eventSearchParams,
+            page: 0,
+        })
+    }
 
     const incrPage = () => {
         setEventSearchParams({
@@ -71,6 +83,7 @@ export default function ViewEvents() {
     }
 
     const updateEventSearchParams = (newParams: { dates: string[] }) => {
+        // console.log(newParams.dates)
         setEventSearchParams({
             ...eventSearchParams,
             ...newParams,

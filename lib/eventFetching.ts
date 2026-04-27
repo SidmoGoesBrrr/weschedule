@@ -33,10 +33,11 @@ type SearchResponse = {
 // const EVENT_RETURN_LIMIT: number = 10; // Change this as needed
 
 export async function getEvents(availability: DateRange[], page: number, pageCapacity: number) {
+    console.log(availability);
     if (page < 0) {
         return { success: false, error: "Negative page number -- out of bounds" }
     }
-    const events: CorqEvent[] = [];
+    let events: CorqEvent[] = [];
 
     // Collect all promises for fetching events for each time range in availability
     const requests: Promise<AxiosResponse<SearchResponse>>[] = [];
@@ -67,10 +68,10 @@ export async function getEvents(availability: DateRange[], page: number, pageCap
             if (response.status === "fulfilled") {
                 response.value.data.value.forEach((eventData: EventResponse) => {
                     // if (events.length < EVENT_RETURN_LIMIT) {
-                    console.log('this event starts on')
-                    console.log(eventData.startsOn)
-                    console.log('and ends on')
-                    console.log(eventData.endsOn)
+                    // console.log('this event starts on')
+                    // console.log(eventData.startsOn)
+                    // console.log('and ends on')
+                    // console.log(eventData.endsOn)
                     const startDateString = eventData.startsOn.slice(0, 10);
                     const dateStartTime = new Date(eventData.startsOn).toLocaleTimeString('en-US', {
                         hour12: false,
@@ -97,10 +98,12 @@ export async function getEvents(availability: DateRange[], page: number, pageCap
     });
 
     const totalPages = Math.ceil(events.length / pageCapacity);
+    // console.log(`${page} vs ${totalPages}`)
     const numEvents = events.length;
-    if (page >= totalPages) {
-        return { success: false, error: "Page out of bounds" }
+    if (page >= totalPages && totalPages > 0) {
+        return { success: false, events: [], numEvents: 0, error: "Page out of bounds" }
     }
+    events.sort((a, b) => a.dates[0].localeCompare(b.dates[0]))
     const eventsToReturn = events.slice(page * pageCapacity, Math.min(events.length, (page + 1) * pageCapacity))
 
     return {
